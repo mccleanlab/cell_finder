@@ -9,36 +9,46 @@ warning('off', 'images:initSize:adjustingMag');
 
 %% Load images
 tic;
-channels = {'DIC', 'iRFP', 'mCh', 'YFP'};
-[images, params] = loadImages(channels);
 disp('Loading images into MATLAB');
+channels = {'iRFP','mCh'};
+[images, params] = loadImages(channels,[]);
 toc;
+
 %% Set parameters
-params.sizeNuc = [3 9];
-params.sizeCell = [16 36];
-params.nucSensitivity = 0.95;
+params.sizeNuc = [3 12]; 
+params.sizeCell = [18 30];
+params.nucGamma = 3;
+params.cellGamma = 0.75;
+params.nucSensitivity = 0.95; 
 params.cellSensitivity = 0.85;
-params.sizeNucForce = [8 12];
-params.sizeCellForce = [16 36];
-params.sizeCellScale = 1;
+params.nucEdgeThresh = 0.5;
+params.cellEdgeThresh = 0.5;
+params.nucDilate = 5;
+params.sizeNucForce = []; 
+params.sizeCellForce = []; 
+params.sizeCellScale = 0.9;
 params.nucOverlapThresh = -0.9;
-params.cellOverlapThresh = 0.25;
+params.cellOverlapThresh = 0.5;
 params.nucCellOverlapThresh = 0.5;
 params.lifespan = 5;
-params.displayCells = 0;
+params.smoothFilterSize = [5, 5, 5, 5, 5, 3]; % params.smoothFilterSize = [5, 5, 3];
+params.medFilterSize = 0;
+params.displayCells = 1;
 params.writeImages = 1;
+
 %% Register images
 tic
-[images.DIC, xform] = registerImagesFast(images.DIC,[]);
-[images.iRFP, ~] = registerImagesFast(images.iRFP,xform);
+disp('Registering images');
+[images.iRFP, xform] = registerImagesFast(images.iRFP,[]);
 [images.mCh, ~] = registerImagesFast(images.mCh,xform);
 clearvars xform
-disp('Registering images');
 toc;
+
 %% Find cell and nuclei ROIs
 tic
-cellData = findCells(images.iRFP,images.DIC,'DIC',params);
 disp('Finding paired cell/nucleus ROIs')
+cellData = findCells(images.iRFP,images.mCh,'mCh',params);
+% cellData = findCells([],images.mCh,'mCh',params);
 toc;
 
 %% Track cell ROIs
@@ -46,53 +56,64 @@ tic
 maxLinkDist = 30;
 maxGapClose = 25;
 cellData = trackCells(cellData, 'Cells',maxLinkDist,maxGapClose);
-clearvars maxLinkDist maxGapClose
 disp(['Tracking ' num2str(length(unique(cellData.TrackID))) ' ROIs']);
+clearvars maxLinkDist maxGapClose
 toc;
+
 %% Remove repeated nuclei
 tic
-cellData = removeRepeatNuclei(cellData);
 disp('Removing repeated nuclear ROIs');
+cellData = removeRepeatNuclei(cellData);
 toc;
+
 %% Interpolate cell tracks and remove tracks with duration < lifespan
 tic
-cellData = interpolateTracks(cellData,params,1);
 disp('Interpolating ROI tracks');
-toc; 
+cellData = interpolateTracks(cellData,params,1);
+toc;
+
 %% Smooth tracks
 tic
-cellData = smoothTracks(cellData);
 disp('Smoothing ROI tracks');
+cellData = smoothTracks(cellData,params.smoothFilterSize,params.medFilterSize);
 toc;
+
 %% BG subtract images
-% tic 
-% [params.BG.YFP, ~] = calcBG(images.DIC,images.YFP,1,params);
-% images.YFP = images.YFP - cellFinderProperties.BG.YFP;
-% [params.BG.mCh, ~] = calcBG(images.DIC,images.mCh,1,params);
-% images.mCh = images.mCh - params.BG.mCh;
-% toc
-% disp('Background subtraction')
+tic
+disp('Background subtraction')
+[params.BG.YFP, ~] = calcBG(images.DIC,images.YFP,1,params);
+images.YFP = images.YFP - cellFinderProperties.BG.YFP;
+[params.BG.mCh, ~] = calcBG(images.DIC,images.mCh,1,params);
+images.mCh = images.mCh - params.BG.mCh;
+params.BG = images.mCh(:,:,1);
+params.BG = mode(params.BG(:));
+images.mCh = images.mCh - params.BG;
+toc
+
 %% Measure cells within tracked ROIs
 tic
-cellMeasurements = measureCells(images.YFP,'YFP',0,cellData,params);
+cellMeasurements = cellData;
 cellMeasurements = measureCells(images.mCh,'mCh',1,cellMeasurements,params);
 toc;
+
 %% Export data
 tic
+disp('Exporting cell measurements');
 % Delete previously exported data (otherwise appends)
 if exist(params.outputDataPath)~=0
     delete(params.outputDataPath);
 end
 % Write data into .xls file
-cellMeasurements.SourceFile = repmat(params.paths.DIC,height(cellMeasurements),1);
+cellMeasurements.SourceFile = repmat(params.paths.mCh,height(cellMeasurements),1);
 writetable(cellMeasurements, params.outputDataPath);
-disp('Exporting cell measurements');
 toc;
+
 %% Display tracked cells
 tic
-displayCells(cellMeasurements,images.DIC,images.DIC,params);
 disp('Displaying tracked cells');
-toc; 
+displayCells(cellMeasurements,images.mCh,images.mCh,params);
+toc;
+
 %%
 tnet = toc(tnet);
 disp(['Total elapsed time is ' num2str(tnet) ' seconds'])
