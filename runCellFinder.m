@@ -35,6 +35,7 @@ params.smoothFilterSize = [5, 5, 5, 5, 5, 3]; % params.smoothFilterSize = [5, 5,
 params.medFilterSize = 0;
 params.displayCells = 1;
 params.writeImages = 1;
+params.displayCellNumber = 1;
 
 %% Register images
 tic

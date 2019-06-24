@@ -15,6 +15,7 @@ for f = 1:params.nf
         imNuc0 = imNuc(:,:,f);
         %         imNuc0 = imgaussfilt(imNuc0,2);
         imNuc0 = imadjust(imNuc0,stretchlim(imNuc0),[],params.nucGamma);
+        imNuc0 = imgaussfilt(imNuc0,2);
         nucEdgeThresh = params.nucEdgeThresh.*graythresh(imNuc0);
     end
     
@@ -23,7 +24,7 @@ for f = 1:params.nf
     if imCellType=='DIC'
         polarity = 'dark';
         imCell0 = imadjust(imCell0,stretchlim(imCell0),[0 1],params.cellGamma);
-        imCell0 = imgaussfilt(imCell0,4);
+        imCell0 = imgaussfilt(imCell0,2);
         cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
     else
         polarity = 'bright';

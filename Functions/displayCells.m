@@ -36,13 +36,15 @@ for f = 1:params.nf
     viscircles([cellDataDisplay.cCellX, cellDataDisplay.cCellY], cellDataDisplay.rCell,'EdgeColor','y','LineWidth',0.25);
     
     % Label identified cells
-    if ismember('TrackID', cellDataDisplay.Properties.VariableNames)
-        for i = 1:length(cellDataDisplay.TrackID)
-            text(cellDataDisplay.cCellX(i) + 25, cellDataDisplay.cCellY(i) + 8, sprintf('%d', cellDataDisplay.TrackID(i)),'HorizontalAlignment','center','VerticalAlignment','middle','Color','y');
-        end
-    else
-        for i = 1:length(cellDataDisplay.ID)
-            text(cellDataDisplay.cCellX(i) + 25, cellDataDisplay.cCellY(i) + 8, sprintf('%d', cellDataDisplay.ID(i)),'HorizontalAlignment','center','VerticalAlignment','middle','Color','y');
+    if params.displayCellNumber==1
+        if ismember('TrackID', cellDataDisplay.Properties.VariableNames)
+            for i = 1:length(cellDataDisplay.TrackID)
+                text(cellDataDisplay.cCellX(i) + 25, cellDataDisplay.cCellY(i) + 8, sprintf('%d', cellDataDisplay.TrackID(i)),'HorizontalAlignment','center','VerticalAlignment','middle','Color','y');
+            end
+        else
+            for i = 1:length(cellDataDisplay.ID)
+                text(cellDataDisplay.cCellX(i) + 25, cellDataDisplay.cCellY(i) + 8, sprintf('%d', cellDataDisplay.ID(i)),'HorizontalAlignment','center','VerticalAlignment','middle','Color','y');
+            end
         end
     end
     
