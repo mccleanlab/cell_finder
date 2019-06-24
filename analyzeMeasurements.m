@@ -1,6 +1,6 @@
 clearvars
 close all
-%% Load files and add to table
+%% Load files and append to table
 data = [];
 [files, folder] =  uigetfile('.xls','MultiSelect','on');
 if ischar(files)==1
@@ -13,7 +13,7 @@ for i = 1:length(files)
     data = [data; data0];
 end
 
-%% Edit data
+%% Edit table 
 data.Sample = string(extractBetween(data.SourceFile,'SplitImages\','.tif'));
 % data.Sample = regexprep(data.Sample,'WELL\w\d*_yMM1454_','','ignorecase');
 % data.Sample = regexprep(data.Sample,'_mCh','','ignorecase');
@@ -30,7 +30,7 @@ data.Sample = string(extractBetween(data.SourceFile,'SplitImages\','.tif'));
 %% Set variable of interest (VOI)
 VOI = 'mCh_Localization';
 
-%% Plot mean and CI of VOI
+%% Plot mean and CI
 measurements = grpstats(data,{'Time','Sample'},{'mean','meanci'},'DataVars',VOI);
 
 samplelist = (unique(measurements.Sample,'stable'));
@@ -56,7 +56,7 @@ figure;
 boxplot(data.(VOI),{data.Time});
 % ylim([1 1.4])
 
-%% Single cell traces
+%% Plot single cell traces
 figure;
 cellList = unique(data.TrackID,'stable');
 
@@ -68,8 +68,7 @@ for c = 1:numel(cellList)
     plot(t,y)
 end
 
-%% Calculate and plot fold change
-% data.FC = [];
+%% Calculate fold change (FC)
 
 for c = 1:numel(cellList)
     cidx = cellList(c);    
@@ -83,7 +82,7 @@ for c = 1:numel(cellList)
     end
 end
 
-
+%% Plot fold change
 for c = 1:numel(cellList)
     hold on
     cidx = cellList(c);
