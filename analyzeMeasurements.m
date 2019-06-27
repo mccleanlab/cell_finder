@@ -92,6 +92,40 @@ for c = 1:numel(cellList)
 end
 
 boxplot(data.([VOI '_FC']),{data.Time})
-%%
+
+%% Photobleach correction (PBC)
+figure; hold on
+VOI = 'mCh_Cell_median';
+
+% Plot initial data
+y = varfun(@nanmedian, data,'InputVariables',VOI,'GroupingVariables','Time');
+t = y{:,1};
+y = y{:,3};
+plot(t,y,'b')
+
+% Plot data used for fit
+y = varfun(@nanmedian, data(data.Time<=10 | data.Time>=54 & data.Time<=60 | data.Time>=87 & data.Time<=93,:),'InputVariables',VOI,'GroupingVariables','Time');
+t = y{:,1};
+y = y{:,3};
+plot(t,y,'bo')
+
+% Fit to calculate PBC parameters
+options = fitoptions('exp2');
+options.Lower = [-Inf -Inf -Inf 0];
+options.Upper = [Inf Inf Inf 0];
+f = fit(t,y,'exp2',options);
+PBC = @(x,t) (x - f.c)./exp(f.b.*t);
+plot(f)
+
+% Apply PBC
+data_PBC = data;
+for c=8:17
+    data_PBC{:,c} = PBC(data_PBC{:,c},data_PBC.Time);
+end
+
+y = varfun(@nanmedian, data_PBC,'InputVariables',VOI,'GroupingVariables','Time');
+t = y{:,1};
+y = y{:,3} + f.c;
+plot(t,y,'c')
 
 
