@@ -29,9 +29,10 @@ for c = 1:nc
     end
 end
 
+cellDataInterp(isnan(cellDataInterp.TrackID),:)=[];
 cellDataInterp = removevars(cellDataInterp,{'Time_cellData0'});
 cellDataInterp.Properties.VariableNames{'Time_cellDataInterp0'} = 'Time';
-cellDataInterp = rmmissing(cellDataInterp);
+% cellDataInterp = rmmissing(cellDataInterp);
 
 if removeOverlap==1
     % Remove overlaping cells created by interpolation

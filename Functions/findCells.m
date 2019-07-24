@@ -1,39 +1,54 @@
 function cellData = findCells(imNuc,imCell,imCellType,params)
-% imNuc = images.iRFP;
-% imCell = images.DIC;
-% imCellType = 'DIC';
+% imNuc = images.mCherry;
+% imCell = images.GFP;
+% imCellType = 'GFP';
+% params.nucSensitivity = 0.95;
+% params.nucEdgeThresh = 0.25;
+% params.cellEdgeThresh = 0.5;
+% params.cellSensitivity = 0.85;
+% params.nucGamma = 1;
+
 
 for f = 1:params.nf
     %% Image processing
     
     % Preprocess nuclear images
     if ~isempty(imNuc)
-        %         imNuc0 = imadjust(imNuc0,stretchlim(imNuc0,[0.75 0.9999999]),[],gamma);
-        %         smoothFilter = fspecial('gaussian', [9 9], 2);
-        %         imNuc0 = imfilter(imNuc0, smoothFilter);
+        
         %         imNuc0 = imerode(imNuc0,strel('disk',5));
         imNuc0 = imNuc(:,:,f);
-        %         imNuc0 = imgaussfilt(imNuc0,2);
-        imNuc0 = imadjust(imNuc0,stretchlim(imNuc0),[],params.nucGamma);
         imNuc0 = imgaussfilt(imNuc0,2);
-        nucEdgeThresh = params.nucEdgeThresh.*graythresh(imNuc0);
+        imNuc0 = imadjust(imNuc0,stretchlim(imNuc0,[0.9 0.999]),[],params.nucGamma);
+        %         nucEdgeThresh = params.nucEdgeThresh.*graythresh(imNuc0);
+        nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
+        
     end
     
     % Preprocess cell images
     imCell0 = imCell(:,:,f);
-    if imCellType=='DIC'
-        polarity = 'dark';
-        imCell0 = imadjust(imCell0,stretchlim(imCell0),[0 1],params.cellGamma);
-        imCell0 = imgaussfilt(imCell0,2);
+    if isequal(imCellType,'DIC')
+        %         polarity = 'dark';
+        %         polarity = 'bright';
+        %                 imCell0 = imgaussfilt(imCell0,2);
+        %         imCell0 = imadjust(imCell0,stretchlim(imCell0),[0 1],params.cellGamma);
+        %                 cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
+        polarity = 'bright';
+        %         n = 10;
+        %         filt = fspecial('log',[n n],2);
+        %         imCell0 = imfilter(imCell0,filt);
+        imCell0 = imadjust(imCell0);
         cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
+        
     else
         polarity = 'bright';
         %         smoothFilter = fspecial('gaussian', [3 3], 2);
         %         imCell0 = imfilter(imCell0, smoothFilter);
+        %         imCell0 = imgaussfilt(imCell0,2);
         %         imCell0 = imadjust(imCell0);
         imCell0 = imadjust(imCell0,stretchlim(imCell0),[0 0.5],params.cellGamma);
-        imCell0 = imgaussfilt(imCell0,1);
-        cellEdgeThresh = params.cellEdgeThresh.*graythresh(imCell0);
+        imCell0 = imgaussfilt(imCell0,3);
+        cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
+        
     end
     
     clearvars cNuc rNuc cCell rCell numInCell
@@ -176,7 +191,6 @@ for f = 1:params.nf
             imshow(imadjust(imCell0,stretchlim(imCell0,[0.0001 0.9999])))
             viscircles(cCell, rCell,'EdgeColor','y','LineWidth',1);
         end
-        
         clearvars cellDataDisplay
     end
     
