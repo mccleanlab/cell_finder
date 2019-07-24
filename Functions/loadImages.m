@@ -37,7 +37,9 @@ end
 %% Load timeseries images into workspace
 for i = 1:length(channels)
     VOI = channels{i};
-    for t = 1:params.nf        
-        images.(VOI)(:,:,t)=imread(images.paths.(VOI),'Index',t);
+    for t = 1:params.nf
+        images.(VOI)(:,:,t)=imread(images.paths.(VOI),'Index',t);        
+        params.([VOI '_mode'])(t) = mode(images.(VOI)(:));
     end
+    
 end

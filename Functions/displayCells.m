@@ -1,7 +1,7 @@
 function [] = displayCells(cellData,imNuc,imCell,params)
 
 % Delete existing output images
-if exist([params.outputFolder params.prefix '.tif'])~=0 && params.writeImages==1
+if exist([params.outputFolder params.prefix '.tif'])~=0
     delete([params.outputFolder params.prefix '.tif']);
 end
 
@@ -36,24 +36,45 @@ for f = 1:params.nf
     viscircles([cellDataDisplay.cCellX, cellDataDisplay.cCellY], cellDataDisplay.rCell,'EdgeColor','y','LineWidth',0.25);
     
     % Label identified cells
-    if params.displayCellNumber==1
-        if ismember('TrackID', cellDataDisplay.Properties.VariableNames)
-            for i = 1:length(cellDataDisplay.TrackID)
-                text(cellDataDisplay.cCellX(i) + 25, cellDataDisplay.cCellY(i) + 8, sprintf('%d', cellDataDisplay.TrackID(i)),'HorizontalAlignment','center','VerticalAlignment','middle','Color','y');
-            end
-        else
-            for i = 1:length(cellDataDisplay.ID)
-                text(cellDataDisplay.cCellX(i) + 25, cellDataDisplay.cCellY(i) + 8, sprintf('%d', cellDataDisplay.ID(i)),'HorizontalAlignment','center','VerticalAlignment','middle','Color','y');
+    if params.displayCellNumber==1 && ismember('TrackID', cellDataDisplay.Properties.VariableNames)
+        for i = 1:length(cellDataDisplay.TrackID)
+            text(cellDataDisplay.cCellX(i) + 0, cellDataDisplay.cCellY(i) + 0, sprintf('%d', cellDataDisplay.TrackID(i)));
+            txt.HorizontalAlignment='center';
+            txt.VerticalAlignment='middle';
+            txt.Color = 'k';
+        end
+    elseif params.displayCellNumber==1 && ~ismember('TrackID', cellDataDisplay.Properties.VariableNames)
+        for i = 1:length(cellDataDisplay.ID)
+            text(cellDataDisplay.cCellX(i) + 25, cellDataDisplay.cCellY(i) + 8, sprintf('%d', cellDataDisplay.ID(i)));
+            txt.HorizontalAlignment='center';
+            txt.VerticalAlignment='middle';
+            txt.Color = 'k';
+        end
+    elseif params.displayCellNumber==2 && ismember('Parent', cellDataDisplay.Properties.VariableNames)
+        for i = 1:length(cellDataDisplay.Parent)
+            if ~isnan(cellDataDisplay.Parent(i))
+                txt = text(cellDataDisplay.cCellX(i) + 0, cellDataDisplay.cCellY(i) + 0, sprintf('%d', [cellDataDisplay.Parent(i)]));
+                txt.HorizontalAlignment='center';
+                txt.VerticalAlignment='middle';
+                txt.Color = 'g';
+            elseif isnan(cellDataDisplay.Parent(i))
+                txt = text(cellDataDisplay.cCellX(i) + 0, cellDataDisplay.cCellY(i) + 0, sprintf('%d', cellDataDisplay.TrackID(i)));
+                txt.HorizontalAlignment='center';
+                txt.VerticalAlignment='middle';
+                txt.Color = 'k';
             end
         end
+        
     end
     
+    %     ,'VerticalAlignment','middle','Color','g');
+    
     % Export images
-    if params.writeImages==1
-        F = getframe(f);
-        im = F.cdata;
-        imwrite(im, [params.outputFolder params.prefix '.tif'],'WriteMode','append');
-    end
+    
+    F = getframe(f);
+    im = F.cdata;
+    imwrite(im, [params.outputFolder params.prefix '.tif'],'WriteMode','append');
+    
     close;
     cellDataDisplay =[];
 end

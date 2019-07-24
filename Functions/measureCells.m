@@ -1,7 +1,7 @@
 function cellDataMeasure = measureCells(imMeasure,channel,measureLocalization,cellData,params)
 % imMeasure = images.mCh;
 % channel = 'mCh';
-% measureLocalization =1;
+% measureLocalization = 1;
 
 disp('Measuring cells:')
 nf = params.nf;
@@ -10,13 +10,13 @@ nf = params.nf;
 for f = 1:nf
     disp(['     Frame ' num2str(f)])
     
-    % Set image to measure and remove zeros introduce by registration
+    % Set image to measure and remove zeros introduced by registration
     imMeasure0 = imMeasure(:,:,f);
     imMeasure0 = double(imMeasure0);
     imMeasure0(imMeasure0==0)=nan;
     
     % Initialize variables
-    cellDataMeasure0 = [];
+%     cellDataMeasure0 = [];
     cellDataMeasure0 = cellData(cellData.Time==f,:);
     cellDataMeasure0 = table2struct(cellDataMeasure0);
     
@@ -79,8 +79,8 @@ for f = 1:nf
             if length(Localization0)>14
                 max15px = Localization0(end-14:end);
                 dimpx = Localization0(1:end-14);
-                cellDataMeasure0(c).([channel '_max15px']) = nanmean(max15px);
-                cellDataMeasure0(c).([channel '_Localization']) = nanmean(max15px)./nanmean(dimpx);
+                cellDataMeasure0(c).([channel '_max15px']) = nanmedian(max15px);
+                cellDataMeasure0(c).([channel '_Localization']) = nanmedian(max15px)./nanmedian(dimpx);
             else
                 cellDataMeasure0(c).([channel '_max15px']) = nan;
                 cellDataMeasure0(c).([channel '_Localization']) = nan;
@@ -92,11 +92,11 @@ for f = 1:nf
             if length(Localization0)>14
                 max15px = Localization0(end-14:end);
                 dimpx = Localization0(1:end-14);
-                cellDataMeasure0(c).([channel '_max15px']) = nanmean(max15px);
-                cellDataMeasure0(c).([channel '_Localization']) = nanmean(max15px)./nanmean(dimpx);
+                cellDataMeasure0(c).([channel '_max15px']) = nanmedian(max15px);
+                cellDataMeasure0(c).([channel '_Localization']) = nanmedian(max15px)./nanmedian(dimpx);
             else
                 cellDataMeasure0(c).([channel '_max15px']) = nan;
-                cellDataMeasure0(c).([channel '_Localization']) = nanmean(max15px)./nan;
+                cellDataMeasure0(c).([channel '_Localization']) = nanmedian(max15px)./nan;
             end
         end
     end
