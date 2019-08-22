@@ -1,59 +1,68 @@
-function cellDataOut = interpolateTracks(cellData,params,removeOverlap)
+function cellDataRemoveOverlap = interpolateTracks(data,params,removeOverlap)
 % clearvars -except cellData lifespan cellFinderProperties
 lifespan = params.lifespan;
-nt = length(unique(cellData.Time));
-listTrackID = unique(cellData.TrackID);
+nf = length(unique(data.Frame));
+listTrackID = unique(data.TrackID,'stable');
 nc = length(listTrackID);
+np = max(data.Position(:));
 
-
-for c = 1:nc
-    clearvars cellDataInterp0
-    TrackID = listTrackID(c);
-    cellData0 = cellData(cellData.TrackID==TrackID,:);
-    cellDataInterp0.Time = (1:nt)';
-    cellDataInterp0 = struct2table(cellDataInterp0);
-    cellDataInterp0 = outerjoin(cellDataInterp0,cellData0);
-    cellDataInterp0 = fillmissing(cellDataInterp0,'linear','EndValues','none');
-    cellDataInterp0.Lifetime = repmat(sum(~isnan(cellDataInterp0.TrackID)),height(cellDataInterp0),1);
-    
-    % Remove tracks with lifespan less than threshold
-    if nt>=lifespan && sum(~isnan(cellDataInterp0.Time_cellData0))<lifespan
-        cellDataInterp0 = [];
-    end
-    
-    % Append data to struct
-    if c==1
-        cellDataInterp = cellDataInterp0;
-    else
-        cellDataInterp = vertcat(cellDataInterp, cellDataInterp0);
-    end
-end
-
-cellDataInterp(isnan(cellDataInterp.TrackID),:)=[];
-cellDataInterp = removevars(cellDataInterp,{'Time_cellData0'});
-cellDataInterp.Properties.VariableNames{'Time_cellDataInterp0'} = 'Time';
-% cellDataInterp = rmmissing(cellDataInterp);
-
-if removeOverlap==1
-    % Remove overlaping cells created by interpolation
-    for t = 1:nt
-        clearvars cellDataOut0 cellDataOut00
-        cellDataOut0 = cellDataInterp(cellDataInterp.Time==t,:);
-        % Remove overlapping cell with shortest lifespan
-        if ~isempty(params.cellOverlapThresh)
-            [cCell, ~] = removeOverLapByLifespan([cellDataOut0.cCellX, cellDataOut0.cCellY],cellDataOut0.rCell,cellDataOut0.Lifetime,params.cellOverlapThresh*params.sizeCell(2));
+for p = 1:np
+    cellData = data(data.Position==p,:);
+    for c = 1:nc
+        clearvars cellDataInterp0
+        TrackID = listTrackID(c);
+        cellData0 = cellData(cellData.TrackID==TrackID,:);
+        cellDataInterp0.Frame = (1:nf)';
+        cellDataInterp0 = struct2table(cellDataInterp0);
+        cellDataInterp0 = outerjoin(cellDataInterp0,cellData0);
+        cellDataInterp0 = fillmissing(cellDataInterp0,'linear','EndValues','none');
+        cellDataInterp0.Lifetime = repmat(sum(~isnan(cellDataInterp0.TrackID)),height(cellDataInterp0),1);
+        
+        % Remove tracks with lifespan less than threshold
+        if nf>=lifespan && sum(~isnan(cellDataInterp0.Frame_cellData0))<lifespan
+            cellDataInterp0 = [];
         end
-        cellDataOut00.cCellX = cCell(:,1);
-        cellDataOut00.cCellY = cCell(:,2);
-        cellDataOut00 = struct2table(cellDataOut00);
-        cellDataOut0 = innerjoin(cellDataOut0, cellDataOut00);
-        if t==1
-            cellDataOut = cellDataOut0;
+        
+        % Append data to struct
+        if c==1
+            cellDataInterp = cellDataInterp0;
         else
-            cellDataOut = vertcat(cellDataOut, cellDataOut0);
+            cellDataInterp = vertcat(cellDataInterp, cellDataInterp0);
         end
     end
-else
-    cellDataOut = cellDataInterp;
+    
+    cellDataInterp(isnan(cellDataInterp.TrackID),:)=[];
+    cellDataInterp = removevars(cellDataInterp,{'Frame_cellData0'});
+    cellDataInterp.Properties.VariableNames{'Frame_cellDataInterp0'} = 'Frame';
+    % cellDataInterp = rmmissing(cellDataInterp);
+    
+    if removeOverlap==1
+        % Remove overlaping cells created by interpolation
+        for f = 1:nf
+            clearvars cellDataRemoveOverlap0 cellDataRemoveOverlap00
+            cellDataRemoveOverlap0 = cellDataInterp(cellDataInterp.Frame==f,:);
+            % Remove overlapping cell with shortest lifespan
+            if ~isempty(params.cellOverlapThresh)
+                [cCell, ~] = removeOverLapByLifespan([cellDataRemoveOverlap0.cCellX, cellDataRemoveOverlap0.cCellY],cellDataRemoveOverlap0.rCell,cellDataRemoveOverlap0.Lifetime,params.cellOverlapThresh*params.sizeCell(2));
+            end
+            cellDataRemoveOverlap00.cCellX = cCell(:,1);
+            cellDataRemoveOverlap00.cCellY = cCell(:,2);
+            cellDataRemoveOverlap00 = struct2table(cellDataRemoveOverlap00);
+            cellDataRemoveOverlap0 = innerjoin(cellDataRemoveOverlap0, cellDataRemoveOverlap00);
+            if f==1
+                cellDataRemoveOverlap = cellDataRemoveOverlap0;
+            else
+                cellDataRemoveOverlap = vertcat(cellDataRemoveOverlap, cellDataRemoveOverlap0);
+            end
+        end
+    else
+        cellDataRemoveOverlap = cellDataInterp;
+    end
+    
+    if p==1
+        cellDataOut = cellDataRemoveOverlap;
+    else
+        cellDataOut = vertcat(cellDataOut, cellDataRemoveOverlap);
+    end
 end
 

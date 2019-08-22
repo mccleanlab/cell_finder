@@ -1,7 +1,9 @@
-function cellDataSmooth = smoothTracks(cellData,smoothFilterSize,medFilterSize)
-listTrackID = unique(cellData.TrackID);
+function cellDataSmoothOut = smoothTracks(cellData,smoothFilterSize,medFilterSize)
+listTrackID = unique(cellData.TrackID,'stable');
+
+np = length(unique(cellData.Position));
 nc = length(listTrackID);
-nt = length(unique(cellData.Time));
+nf = length(unique(cellData.Frame));
 
 
 % Set track variables for filtering and filter size
@@ -11,7 +13,7 @@ else
     smoothVar = {'cCellX' 'cCellY' 'rCell'};
 end
 
-if medFilterSize > nt
+if medFilterSize > nf
     disp('medFilterSize exceeds number of frames')
 end
 
@@ -20,27 +22,34 @@ if numel(smoothFilterSize) ~= numel(smoothVar)
 end
 
 % Filter track timetraces
-for c = 1:nc
-    clearvars cellDataSmooth0
-    TrackID = listTrackID(c);
-    cellDataSmooth0 = cellData(cellData.TrackID==TrackID,:);
-    for i = 1: length(smoothVar)
-        if strcmp(smoothVar{i},'rCell')==1 && medFilterSize>0
-            % Apply median filter to cell radii
-            cellDataSmooth0.(smoothVar{i}) = medfilt1(cellDataSmooth0.(smoothVar{i}),medFilterSize);
+for p = 1:np
+    for c = 1:nc
+        clearvars cellDataSmooth0
+        TrackID = listTrackID(c);
+        cellDataSmooth0 = cellData(cellData.TrackID==TrackID,:);
+        for i = 1: length(smoothVar)
+            if strcmp(smoothVar{i},'rCell')==1 && medFilterSize>0
+                % Apply median filter to cell radii
+                cellDataSmooth0.(smoothVar{i}) = medfilt1(cellDataSmooth0.(smoothVar{i}),medFilterSize);
+            else
+                % Smooth cell tracks
+                cellDataSmooth0.(smoothVar{i}) = smooth(cellDataSmooth0.(smoothVar{i}),smoothFilterSize(i));
+            end
+        end
+        
+        % Collect data into single struct
+        if c==1
+            cellDataSmooth = cellDataSmooth0;
         else
-            % Smooth cell tracks
-            cellDataSmooth0.(smoothVar{i}) = smooth(cellDataSmooth0.(smoothVar{i}),smoothFilterSize(i));
+            cellDataSmooth = vertcat(cellDataSmooth, cellDataSmooth0);
         end
     end
-    
-    % Collect data into single struct
-    if c==1
-        cellDataSmooth = cellDataSmooth0;
+    if p==1
+        cellDataSmoothOut = cellDataSmooth;
     else
-        cellDataSmooth = vertcat(cellDataSmooth, cellDataSmooth0);
+        cellDataSmoothOut = vertcat(cellDataSmoothOut, cellDataSmooth);
     end
 end
 % Remove rows with missing data
-cellDataSmooth= rmmissing(cellDataSmooth);
+cellDataSmoothOut= rmmissing(cellDataSmoothOut);
 
