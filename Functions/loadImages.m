@@ -6,9 +6,11 @@ if ischar(files)==1
     files = {files};
 end
 
+[~,~,ext] = fileparts(files{1});
+
 for i = 1:length(channels)
     VOI = channels{i};
-    images.paths.(VOI)= contains(files,VOI);
+    images.paths.(VOI)= contains(files,[VOI ext]);
     images.paths.(VOI) = [images.folder files{images.paths.(VOI)}];
     images.info.(VOI) = imfinfo(images.paths.(VOI));
 end
@@ -24,7 +26,7 @@ end
 match = [".nd2", ".tif", ".tiff", channels];
 params.prefix = erase(files{1}, match);
 params.prefix = params.prefix(1:end-1);
-clearvars match files;
+% clearvars match files;
 params.outputFolder = [images.folder 'output\'];
 params.outputDataPath = [params.outputFolder params.prefix '_cellMeasurements' '.xls'];
 params.paths = images.paths;
@@ -40,6 +42,5 @@ for i = 1:length(channels)
     for t = 1:params.nf
         images.(VOI)(:,:,t)=imread(images.paths.(VOI),'Index',t);        
         params.([VOI '_mode'])(t) = mode(images.(VOI)(:));
-    end
-    
+    end    
 end
