@@ -28,29 +28,41 @@ for p = 1:np
         cellData00 = [];
         
         % Preprocess nuclear images
-        if ~isempty(imNuc)            
-            %         imNuc0 = imerode(imNuc0,strel('disk',5));
+        if ~isempty(imNuc)
             imNuc0 = imNuc(:,:,f,p);
-            imNuc0 = imgaussfilt(imNuc0,2);          
-%             imNuc0 = imadjust(imNuc0,[0.0079, 0.0117],[],params.nucGamma);
-            imNuc0 = imadjust(imNuc0,stretchlim(imNuc0,[0.25 0.99999]),[],params.nucGamma);
-            nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);            
+            
+            n = 12;
+            sigma = 0.05;
+            filt = fspecial('log',n,sigma);
+            imNuc0 = imfilter(imNuc0,filt,'replicate');
+            imNuc0 = imopen(imNuc0,strel('disk',3));
+            imNuc0 = imgaussfilt(imNuc0,1);
+            imNuc0 = imdilate(imNuc0,strel('disk',1));
+            nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
+            
+%                                                 imNuc0 = imadjust(imNuc0,stretchlim(imNuc0,[0.8 0.9999]),[],params.nucGamma);
+%                                                 imNuc0 = imopen(imNuc0,strel('disk',1));
+%                                                 imNuc0 = imdilate(imNuc0,strel('disk',2));
+%                                                 imNuc0 = imgaussfilt(uint16(imNuc0),2);
+%                                                 nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
+            
+            %             imNuc0 = imadjust(imNuc0,stretchlim(imNuc0,[0.9 0.9999]),[],params.nucGamma);
+            %             imNuc0 = imgaussfilt(imNuc0,3);
+            %             nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
         end
         
         % Preprocess cell images
         imCell0 = imCell(:,:,f,p);
         if isequal(channelCell,'DIC')
-                    polarity = 'dark';
-%                     polarity = 'bright';       
-                    imCell0 = imgaussfilt(imCell0,2);
-                    imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);
-            %         cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
-%                     n = 10;
-%                     filt = fspecial('log',[n n],2);
-%                     imCell0 = imfilter(imCell0,filt);
-%                     imCell0 = imgaussfilt(imCell0,2);
-%             polarity = 'bright';
-%             imCell0 = imadjust(imCell0);
+            polarity = 'dark';
+            %             polarity = 'bright';
+            %             imCell0 = imgaussfilt(imCell0,2);
+            imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);
+            %             n = 10;
+            %             filt = fspecial('log',[n n],2);
+            %             imCell0 = imfilter(imCell0,filt);
+            imCell0 = imgaussfilt(imCell0,2);
+            imCell0 = imadjust(imCell0);
             cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
             
         else
@@ -59,18 +71,18 @@ for p = 1:np
             %         imCell0 = imgaussfilt(imCell0,2);
             %         imCell0 = imadjust(imCell0);
             polarity = 'bright';
-            imCell0 = imadjust(imCell0,stretchlim(imCell0,[0.05 0.995]),[],1);            
+            imCell0 = imadjust(imCell0,stretchlim(imCell0,[0.05 0.995]),[],1);
             imCell0 = medfilt2(imCell0);
             imCell0 = imgaussfilt(imCell0,2);
             cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
         end
         
         clearvars cNuc rNuc cCell rCell numInCell
-                     
+        
         % Find potential nuclear ROIs
         if ~isempty(imNuc)
             
-            [cNuc, rNuc] = imfindcircles(imNuc0,params.sizeNuc,'ObjectPolarity','bright','Sensitivity',params.nucSensitivity,'Method','TwoStage','EdgeThreshold',nucEdgeThresh);
+            [cNuc, rNuc, mNuc] = imfindcircles(imNuc0,params.sizeNuc,'ObjectPolarity','bright','Sensitivity',params.nucSensitivity,'Method','TwoStage','EdgeThreshold',nucEdgeThresh);
             
             % If no nuclei found
             if isempty(rNuc)
@@ -80,7 +92,7 @@ for p = 1:np
             
             % Remove nuclei that are too close together
             if ~isempty(params.nucOverlapThresh)
-                [cNuc, rNuc] = RemoveOverLap(cNuc,rNuc,params.nucOverlapThresh.*params.sizeCell(1),2);
+                [cNuc, rNuc] = RemoveOverLapPlus(cNuc,rNuc,params.nucOverlapThresh.*params.sizeCell(1),5,mNuc);
             end
             
             % Force nuclei to size range (counters enlargement due to image preprocessing)
@@ -168,7 +180,7 @@ for p = 1:np
                 end
             end
             
-        elseif isempty(imNuc)            
+        elseif isempty(imNuc)
             cellData00.Frame = repmat(f,numel(rCell),1);
             cellData00.Position = repmat(p,numel(rCell),1);
             cellData00.ID = (1:length(rCell))';
@@ -195,6 +207,8 @@ for p = 1:np
             cellDataDisplay = rmmissing(cellDataDisplay);
             figure;
             if params.displayCells==1 % Show matched nucleus/cell pairs
+                imCell0 = imCell(:,:,f,p);
+                imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);
                 imshow(imCell0)
                 viscircles([cellDataDisplay.cNucX, cellDataDisplay.cNucY] , cellDataDisplay.rNuc,'EdgeColor','r','LineWidth',1);
                 viscircles([cellDataDisplay.cCellX, cellDataDisplay.cCellY] , cellDataDisplay.rCell,'EdgeColor','y','LineWidth',1);
@@ -202,6 +216,8 @@ for p = 1:np
                     text(cellDataDisplay.cNucX(i) + 25, cellDataDisplay.cNucY(i) + 8, sprintf('%d', i),'HorizontalAlignment','center','VerticalAlignment','middle','Color','r');
                 end
             elseif params.displayCells==2 % Show all potential cells/nuclei
+                imCell0 = imCell(:,:,f,p);
+                imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);
                 imshow(imCell0)
                 viscircles(cNuc, rNuc,'EdgeColor','r','LineWidth',1);
                 viscircles(cCell, rCell,'EdgeColor','y','LineWidth',1);

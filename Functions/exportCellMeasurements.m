@@ -8,7 +8,13 @@ if ~exist(params.outputFolder)
 end
 
 % Set data path for output
-outputDataPath = [params.outputFolder '\' params.outputFilenameBase '_cellMeasurements' '.xls'];
+if isempty(params.tabletype)
+    ext = '.xlsx';
+else
+    ext = params.tabletype;
+end
+
+outputDataPath = [params.outputFolder '\' params.outputFilenameBase '_cellMeasurements' ext];
 
 % Delete previously exported data (otherwise appends)
 if exist(outputDataPath)~=0

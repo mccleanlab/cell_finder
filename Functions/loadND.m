@@ -5,6 +5,7 @@ function [images, params, im] = loadND(imagelist,imidx,channellist,numFrames,num
 
 imfile = imagelist{imidx};
 [~, filename, ext] = fileparts(imfile);
+disp(['Loading ' filename]);
 im = bfopen(imfile);
 nseries = size(im,1);
 
