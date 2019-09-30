@@ -31,7 +31,7 @@ for p = 1:np
         if ~isempty(imNuc)
             imNuc0 = imNuc(:,:,f,p);
             
-            n = 12;
+            n = 6;
             sigma = 0.05;
             filt = fspecial('log',n,sigma);
             imNuc0 = imfilter(imNuc0,filt,'replicate');
@@ -40,12 +40,11 @@ for p = 1:np
             imNuc0 = imdilate(imNuc0,strel('disk',1));
             nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
             
-%                                                 imNuc0 = imadjust(imNuc0,stretchlim(imNuc0,[0.8 0.9999]),[],params.nucGamma);
-%                                                 imNuc0 = imopen(imNuc0,strel('disk',1));
-%                                                 imNuc0 = imdilate(imNuc0,strel('disk',2));
-%                                                 imNuc0 = imgaussfilt(uint16(imNuc0),2);
-%                                                 nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
-            
+            %             imNuc0 = imadjust(imNuc0,stretchlim(imNuc0,[0.8 0.9999]),[],params.nucGamma);
+            %             imNuc0 = imopen(imNuc0,strel('disk',1));
+            %             imNuc0 = imdilate(imNuc0,strel('disk',2));
+            %             imNuc0 = imgaussfilt(uint16(imNuc0),2);
+            %             nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
             %             imNuc0 = imadjust(imNuc0,stretchlim(imNuc0,[0.9 0.9999]),[],params.nucGamma);
             %             imNuc0 = imgaussfilt(imNuc0,3);
             %             nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
@@ -66,15 +65,26 @@ for p = 1:np
             cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
             
         else
-            %         smoothFilter = fspecial('gaussian', [3 3], 2);
-            %         imCell0 = imfilter(imCell0, smoothFilter);
-            %         imCell0 = imgaussfilt(imCell0,2);
-            %         imCell0 = imadjust(imCell0);
+            %             smoothFilter = fspecial('gaussian', [3 3], 2);
+            %             imCell0 = imfilter(imCell0, smoothFilter);
+            %             imCell0 = imgaussfilt(imCell0,2);
+            %             imCell0 = imadjust(imCell0);
+            %             polarity = 'bright';
+            %             imCell0 = imadjust(imCell0,stretchlim(imCell0,[0.05 0.995]),[],1);
+            %             imCell0 = medfilt2(imCell0);
+            %             imCell0 = imgaussfilt(imCell0,2);
+            %             cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
+            
             polarity = 'bright';
-            imCell0 = imadjust(imCell0,stretchlim(imCell0,[0.05 0.995]),[],1);
-            imCell0 = medfilt2(imCell0);
+            n = 16;
+            sigma = 0.075;
+            filt = fspecial('log',n,sigma);
+            imCell0 = imfilter(imCell0,filt,'replicate');
             imCell0 = imgaussfilt(imCell0,2);
+            imCell0 = imerode(imCell0,strel('disk',1));
+            imCell0 = imdilate(imCell0,strel('disk',1));
             cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
+            
         end
         
         clearvars cNuc rNuc cCell rCell numInCell
@@ -212,9 +222,9 @@ for p = 1:np
                 imshow(imCell0)
                 viscircles([cellDataDisplay.cNucX, cellDataDisplay.cNucY] , cellDataDisplay.rNuc,'EdgeColor','r','LineWidth',1);
                 viscircles([cellDataDisplay.cCellX, cellDataDisplay.cCellY] , cellDataDisplay.rCell,'EdgeColor','y','LineWidth',1);
-                for i = 1:length(cellDataDisplay.ID)
-                    text(cellDataDisplay.cNucX(i) + 25, cellDataDisplay.cNucY(i) + 8, sprintf('%d', i),'HorizontalAlignment','center','VerticalAlignment','middle','Color','r');
-                end
+%                 for i = 1:length(cellDataDisplay.ID)
+%                     text(cellDataDisplay.cNucX(i) + 25, cellDataDisplay.cNucY(i) + 8, sprintf('%d', i),'HorizontalAlignment','center','VerticalAlignment','middle','Color','r');
+%                 end
             elseif params.displayCells==2 % Show all potential cells/nuclei
                 imCell0 = imCell(:,:,f,p);
                 imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);

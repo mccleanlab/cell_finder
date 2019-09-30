@@ -43,6 +43,7 @@ for f = 1:nf
         end
         
         % Measure cell ROIs
+        cellDataMeasure00(c).([channel '_mode']) = images.([channel '_mode'])(f,p);
         cellDataMeasure00(c).([channel '_Cell_mean']) = nanmean(Cell0);
         cellDataMeasure00(c).([channel '_Cell_median']) = nanmedian(Cell0);
         cellDataMeasure00(c).([channel '_Cell_SD']) = nanstd(Cell0);
@@ -52,8 +53,8 @@ for f = 1:nf
         cellDataMeasure00(c).([channel '_Cell_lowerquartile']) = quantile(Cell0,0.25);
         cellDataMeasure00(c).([channel '_Cell_upperdecile']) = quantile(Cell0,0.9);
         cellDataMeasure00(c).([channel '_Cell_lowerdecile']) = quantile(Cell0,0.1);
-        
-        % Measure nuclear and Cyto ROIs
+                
+        % Measure nuclear and cyto ROIs
         if measureLocalization~=0 && ismember('rNuc', cellData.Properties.VariableNames)
             cellDataMeasure00(c).([channel '_Nuclear_mean']) = nanmean(Nuc0);
             cellDataMeasure00(c).([channel '_Nuclear_median']) = nanmedian(Nuc0);
@@ -73,12 +74,9 @@ for f = 1:nf
             cellDataMeasure00(c).([channel '_Cyto_upperquartile']) = quantile(Cyto0,0.75);
             cellDataMeasure00(c).([channel '_Cyto_lowerquartile']) = quantile(Cyto0,0.25);
             cellDataMeasure00(c).([channel '_Cyto_upperdecile']) = quantile(Cyto0,0.9);
-            cellDataMeasure00(c).([channel '_Cyto_lowerdecile']) = quantile(Cyto0,0.1);
+            cellDataMeasure00(c).([channel '_Cyto_lowerdecile']) = quantile(Cyto0,0.1);            
             
-            % Calculate localization metrics
-            cellDataMeasure00(c).([channel '_NucCytRatio']) = nanmedian(Nuc0)./nanmedian(Cyto0);
-            cellDataMeasure00(c).([channel '_LocScore']) = (nanmedian(Nuc0) - nanmedian(Cyto0))./nanmedian(Cyto0);
-            
+            % Generate metrics for calculating localization score
             Localization0 = Cell0(:);
             Localization0 = Localization0(~isnan(Localization0));
             Localization0 = sort(Localization0);
@@ -86,11 +84,11 @@ for f = 1:nf
             if length(Localization0)>14
                 max15px = Localization0(end-14:end);
                 dimpx = Localization0(1:end-14);
-                cellDataMeasure00(c).([channel '_max15px']) = nanmedian(max15px);
-                cellDataMeasure00(c).([channel '_Localization']) = nanmedian(max15px)./nanmedian(dimpx);
+                cellDataMeasure00(c).([channel '_max15px']) = nanmean(max15px);
+                cellDataMeasure00(c).([channel '_dimpx']) = nanmean(dimpx);
             else
                 cellDataMeasure00(c).([channel '_max15px']) = nan;
-                cellDataMeasure00(c).([channel '_Localization']) = nan;
+                cellDataMeasure00(c).([channel '_dimpx']) = nan;
             end
             
         elseif measureLocalization~=0 && ~ismember('rNuc', cellData.Properties.VariableNames)
@@ -100,11 +98,11 @@ for f = 1:nf
             if length(Localization0)>14
                 max15px = Localization0(end-14:end);
                 dimpx = Localization0(1:end-14);
-                cellDataMeasure00(c).([channel '_max15px']) = nanmedian(max15px);
-                cellDataMeasure00(c).([channel '_Localization']) = nanmedian(max15px)./nanmedian(dimpx);
+                cellDataMeasure00(c).([channel '_max15px']) = nanmean(max15px);
+                cellDataMeasure00(c).([channel '_dimpx']) = nanmean(dimpx);
             else
                 cellDataMeasure00(c).([channel '_max15px']) = nan;
-                cellDataMeasure00(c).([channel '_Localization']) = nan;
+                cellDataMeasure00(c).([channel '_dimpx']) = nan;
             end
         end
     end
