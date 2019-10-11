@@ -1,6 +1,6 @@
 function dataOut = importmeasurements()
 dataOut = [];
-[files, folder] =  uigetfile('.csv','MultiSelect','on');
+[files, folder] =  uigetfile('*xlsx;*.csv','MultiSelect','on');
 if ischar(files)==1
     files = {files};
 end

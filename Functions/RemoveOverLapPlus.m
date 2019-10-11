@@ -1,4 +1,4 @@
-function [centersNew,radiiNew]=RemoveOverLapPlus(centers,radii,tol,option,input)
+function [centersNew,radiiNew]=RemoveOverLapPlus(centers,radii,tol,option,metric)
 % Modified from the Elad's function RemoveOverlap()
 % mathworks.com/matlabcentral/fileexchange/42370-circles-overlap-remover% 
 
@@ -6,19 +6,13 @@ function [centersNew,radiiNew]=RemoveOverLapPlus(centers,radii,tol,option,input)
 % option 1: removes one circle of the two (if it does not matter which one).
 % option 2: removes the smaller circle of the two
 % option 3: kills both all overlaping circles
-% option 4: kill circle with shortest lifespan
-%
+% option 4: kill circle with lower score in metric vector
+
 % centers - (x,y) circles centers.
 % radii - the circles radius
 % tol - tolerance for an overlap, im number of pixels.
 % option - 1,2 or 3, see above.
 % Uses the function snip() from the file exchange.
-
-if option==4
-    lifespan = input;
-elseif option==5
-    metric = input;
-end
 
 
 l=length(centers);
@@ -57,21 +51,11 @@ for i= 1: l
             end
             
             if option==4
-                if lifespan(i)>lifespan(j)
-                    centers(j,1)=0;
-                    centers(j,2)=0;
-                    radii(j)=0;
-                else
-                    centers(i,1)=0;
-                    centers(i,2)=0;
-                    radii(i)=0;
-                end
-            end
-            if option==5
                 if metric(i)>metric(j)
                     centers(j,1)=0;
                     centers(j,2)=0;
                     radii(j)=0;
+                   
                 else
                     centers(i,1)=0;
                     centers(i,2)=0;
