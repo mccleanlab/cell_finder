@@ -12,10 +12,10 @@ if isempty(numFrames)
    numFrames = neries./nChannels;
 end
 
-images.h = iminfo(1).Height;
-images.w = iminfo(1).Width;
-images.np = nPositions;
-images.nf = numFrames;
+images.iminfo.h = iminfo(1).Height;
+images.iminfo.w = iminfo(1).Width;
+images.iminfo.np = nPositions;
+images.iminfo.nf = numFrames;
 
 for p = 1:nPositions
     position = p;

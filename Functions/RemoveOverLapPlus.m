@@ -1,4 +1,4 @@
-function [centersNew,radiiNew]=RemoveOverLapPlus(centers,radii,tol,option,metric)
+function [centersNew,radiiNew,metricNew]=RemoveOverLapPlus(centers,radii,tol,option,metric)
 % Modified from the Elad's function RemoveOverlap()
 % mathworks.com/matlabcentral/fileexchange/42370-circles-overlap-remover% 
 
@@ -55,11 +55,12 @@ for i= 1: l
                     centers(j,1)=0;
                     centers(j,2)=0;
                     radii(j)=0;
-                   
+                    metric(j)=0;
                 else
                     centers(i,1)=0;
                     centers(i,2)=0;
                     radii(i)=0;
+                    metric(i)=0;
                 end
             end
         end
@@ -68,3 +69,4 @@ end
 %create new circles vectors using snip()
 centersNew=snip(centers,'0');
 radiiNew=snip(radii,'0');
+metricNew=snip(metric,'0');
