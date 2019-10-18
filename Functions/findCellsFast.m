@@ -1,11 +1,13 @@
 function cellDataOut = findCellsFast(images,channelNuc,channelCell,params,preprocess_imNuc,preprocess_imCell)
 
 
-% clearvars -except params images channel 
-% tic
-% 
+% clearvars -except params images channel
 % channelNuc = 'mCherry';
 % channelCell = 'GFP';
+
+tic
+
+
 
 if ~isempty(channelNuc)
     imNuc = images.(channelNuc);
@@ -33,8 +35,9 @@ for p = 1:np
     
     % Cycle through frames
     for f = 1:nf
+        cellData0 = table();
         
-        cellData0 = [];
+        disp(['     Frame ' num2str(f) ' position ' num2str(p)])
         
         % Preprocess nuclear images
         if ~isempty(imNuc)
@@ -107,10 +110,9 @@ for p = 1:np
         % Match nuclei to cells
         if ~isempty(imNuc)
             
-            cellData0 = table();
+            
             xy = [cCell; cNuc];
             rads = [rCell; rNuc];
-            f = 1; p =1;
             
             rad2 = rads(:) + rads(:)';
             dxy = sqrt((xy(:,1) - xy(:,1)').^2 + (xy(:,2) - xy(:,2)').^2 );
@@ -136,14 +138,14 @@ for p = 1:np
             
             idxC = 1:nCell;
             idxN = zeros(nCell,1);
+            
             for c =1:nCell
                 idxN(c) = idxN0(c,idxmMax(c));
             end
             
             idxC(idxN==0)=[];
             idxN(idxN==0)=[];
-            nCell = numel(idxN);        
-            
+            nCell = numel(idxN);
             
             cellData0.Frame(1:nCell,1) = f;
             cellData0.Position(1:nCell,1) = p;
@@ -160,13 +162,14 @@ for p = 1:np
             cellData0.mNuc(1:nCell,1) = mNuc(idxN);
             
         elseif isempty(imNuc)
+            nCell = numel(rCell);
             cellData0.Frame(1:nCell,1) = f;
             cellData0.Position(1:nCell,1) = p;
-            cellData0.ID(1:nCell,1) = randi([0 1E9],numel(idxC),1);
-            cellData0.cCellX(1:nCell,1) = cCell(idxC,1);
-            cellData0.cCellY(1:nCell,1) = cCell(idxC,2);
-            cellData0.rCell(1:nCell,1) = rCell(idxC);
-            cellData0.mCell(1:nCell,1) = mCell(idxC);
+            cellData0.ID(1:nCell,1) = randi(1E9);
+            cellData0.cCellX(1:nCell,1) = cCell(:,1);
+            cellData0.cCellY(1:nCell,1) = cCell(:,2);
+            cellData0.rCell(1:nCell,1) = rCell(:);
+            cellData0.mCell(1:nCell,1) = mCell(:);
             
         end
         
@@ -209,5 +212,4 @@ for p = 1:np
     
 end
 cellDataOut = vertcat(cellDataOut{:});
-
-
+toc
