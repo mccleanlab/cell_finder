@@ -1,5 +1,13 @@
-function cellDataOut = findCells(images,channelNuc,channelCell,params,preprocess_imNuc,preprocess_imCell)
+function cellDataOut = findCellsFast(images,channelNuc,channelCell,params,preprocess_imNuc,preprocess_imCell)
+
+
+% clearvars -except params images channel
+% channelNuc = 'mCherry';
+% channelCell = 'GFP';
+
 tic
+
+
 
 if ~isempty(channelNuc)
     imNuc = images.(channelNuc);
@@ -11,22 +19,25 @@ end
 
 if ~isempty(channelCell)
     imCell = images.(channelCell);
+else
+    disp('Must input cell image');
 end
 
 nf = images.iminfo.nf;
 np = images.iminfo.np;
-
-cellData = [];
+h = images.iminfo.h;
+w = images.iminfo.w;
+idxData = 1;
+cellDataOut = cell(np*nf,1);
 
 %Cycle through stage positions
 for p = 1:np
     
-    cellData0 = [];
-    
     % Cycle through frames
     for f = 1:nf
+        cellData0 = table();
         
-        cellData00 = [];
+        disp(['     Frame ' num2str(f) ' position ' num2str(p)])
         
         % Preprocess nuclear images
         if ~isempty(imNuc)
@@ -53,14 +64,16 @@ for p = 1:np
             if isempty(rNuc)
                 disp(['No nuclei found in frame ' num2str(f) ' position ' num2str(p)])
                 rNuc = [nan,nan];
+                cNuc = nan;
+                mNuc = nan;
             end
             
             % Remove nuclei that are too close together
             if ~isempty(params.nucOverlapThresh)
-                [cNuc, rNuc] = RemoveOverLapPlus(cNuc,rNuc,params.nucOverlapThresh.*params.sizeCell(1),4,mNuc);
+                [cNuc, rNuc, mNuc] = RemoveOverLapPlus(cNuc,rNuc,params.nucOverlapThresh.*params.sizeCell(1),4,mNuc);
             end
             
-            % Force nuclei to size range (counters enlargement due to image preprocessing)
+            % Force nuclei to size range (counters dilation due to image preprocessing)
             if ~isempty(params.sizeNucForce)
                 rNuc(rNuc<params.sizeNucForce(1)) = params.sizeNucForce(1);
                 rNuc(rNuc>params.sizeNucForce(2)) = params.sizeNucForce(2);
@@ -69,21 +82,21 @@ for p = 1:np
         
         % Find cell ROIs from image
         [cCell, rCell, mCell] = imfindcircles(imCell0,params.sizeCell,'ObjectPolarity',params.cellPolarity,'Sensitivity',params.cellSensitivity,'Method','TwoStage','EdgeThreshold',cellEdgeThresh);
-        %     [cCell, rCell] = imfindcircles(imCell0,params.sizeCell,'ObjectPolarity',polarity,'Sensitivity',params.cellSensitivity,'Method','TwoStage');
         
         % If no cells found
         if isempty(rCell)
             disp(['No cells found in frame ' num2str(f) ' position ' num2str(p)])
             rCell = nan;
             cCell = nan;
+            mCell = nan;
         end
         
         % Remove overlapping cells
         if ~isempty(params.cellOverlapThresh) && size(cCell,1)>1
-            [cCell, rCell] = RemoveOverLapPlus(cCell,rCell,params.cellOverlapThresh*params.sizeCell(2),4,mCell);
+            [cCell, rCell, mCell] = RemoveOverLapPlus(cCell,rCell,params.cellOverlapThresh*params.sizeCell(2),4,mCell);
         end
         
-        %     Force cells to size range
+        % Force cells to size range
         if ~isempty(params.sizeCellForce)
             rCell(rCell<params.sizeCellForce(1)) = params.sizeCellForce(1);
             rCell(rCell>params.sizeCellForce(2)) = params.sizeCellForce(2);
@@ -94,85 +107,77 @@ for p = 1:np
             rCell = params.sizeCellScale*rCell;
         end
         
-        % Initialize variables
-        cellData00 = struct();
-        
         % Match nuclei to cells
         if ~isempty(imNuc)
             
-            % Parameters for sampling ROIs to find cells containing nuclei
-            perimPoints = 12;
-            fillPoints = 18;
-            L = linspace(0,2*pi,perimPoints);
-            phi = 2*pi*rand(1,fillPoints);
-            r = 1*sqrt(rand(1,fillPoints));
             
-            % Cycle through each nucleus and map to cell
-            for i = 1:length(rNuc)
-                cellData00(i).Frame = f;
-                cellData00(i).Position = p;
-                cellData00(i).ID = i;
-                
-                cellData00(i).cNucX = cNuc(i,1);
-                cellData00(i).cNucY = cNuc(i,2);
-                cellData00(i).rNuc = rNuc(i);
-                
-                % Sample points within nucleus
-                pNuc = [rNuc(i)*cos(L) + cNuc(i,1); rNuc(i)*sin(L) + cNuc(i,2)]';
-                fNuc = [cNuc(i,1) + rNuc(i)*r.*cos(phi); cNuc(i,2) + rNuc(i)*r.*sin(phi)]';
-                fNuc = [fNuc; pNuc];
-                
-                % Sample points on cell perimeter and compare to nuclear points
-                for j = 1:length(rCell)
-                    pCell = [rCell(j)*cos(L)+cCell(j,1); rCell(j)*sin(L)+cCell(j,2)]';
-                    [inCell,~] = inpolygon(fNuc(:,1),fNuc(:,2),pCell(:,1),pCell(:,2));
-                    numInCell(j) = sum(inCell);
-                end
-                
-                % Find best match for cell and nucleus pair
-                [val, idx] = max(numInCell);
-                
-                % If nucleus/cell overlap passes threshold, keep cell
-                if val > (perimPoints + fillPoints)*params.nucCellOverlapThresh
-                    cellData00(i).cCellX = cCell(idx,1);
-                    cellData00(i).cCellY = cCell(idx,2);
-                    cellData00(i).rCell = rCell(idx);
-                    % If not, ditch cell
-                else
-                    cellData00(i).cCellX = nan;
-                    cellData00(i).cCellY = nan;
-                    cellData00(i).rCell = nan;
-                end
+            xy = [cCell; cNuc];
+            rads = [rCell; rNuc];
+            
+            rad2 = rads(:) + rads(:)';
+            dxy = sqrt((xy(:,1) - xy(:,1)').^2 + (xy(:,2) - xy(:,2)').^2 );
+            idx0 = dxy <= rad2;
+            idx0(1:size(xy,1)+1:end) = false;
+            intersecting_circles = find(any(idx0,2));
+            
+            nCell = length(rCell);
+            idxtrim = idx0(1:nCell,(nCell+1):end);
+            maxCol = max(sum(idxtrim,2));
+            mNuc2D = repmat(mNuc,[nCell,maxCol]);
+            idxN0 = zeros(nCell,maxCol);
+            
+            
+            for c = 1:nCell
+                [~, idx] = find(idxtrim(c,:));
+                idxN0(c,1:numel(idx)) = idx;
             end
+            
+            mNucCell = zeros(nCell,maxCol);
+            mNucCell(idxN0>0)= mNuc2D(idxN0>0);
+            [~, idxmMax] = max(mNucCell,[],2);
+            
+            idxC = 1:nCell;
+            idxN = zeros(nCell,1);
+            
+            for c =1:nCell
+                idxN(c) = idxN0(c,idxmMax(c));
+            end
+            
+            idxC(idxN==0)=[];
+            idxN(idxN==0)=[];
+            nCell = numel(idxN);
+            
+            cellData0.Frame(1:nCell,1) = f;
+            cellData0.Position(1:nCell,1) = p;
+            cellData0.ID(1:nCell,1) = randi([0 1E9],numel(idxC),1);
+            cellData0.cCellX(1:nCell,1) = cCell(idxC,1);
+            cellData0.cCellY(1:nCell,1) = cCell(idxC,2);
+            cellData0.rCell(1:nCell,1) = rCell(idxC);
+            cellData0.mCell(1:nCell,1) = mCell(idxC);
+            
+            cellData0.cNucX(1:nCell,1) = cNuc(idxN,1);
+            cellData0.cNucY(1:nCell,1) = cNuc(idxN,2);
+            cellData0.rNuc(1:nCell,1) = rNuc(idxN);
+            cellData0.mNuc(1:nCell,1) = mNuc(idxN);
+            cellData0.mNuc(1:nCell,1) = mNuc(idxN);
             
         elseif isempty(imNuc)
-            cellData00.Frame = repmat(f,numel(rCell),1);
-            cellData00.Position = repmat(p,numel(rCell),1);
-            cellData00.ID = (1:length(rCell))';
-    
-            if ~isempty(rCell) & ~isnan(rCell)
-                cellData00.cCellX = cCell(:,1);
-                cellData00.cCellY = cCell(:,2);
-                cellData00.rCell = rCell;
-            else
-                cellData00.cCellX = nan;
-                cellData00.cCellY = nan;
-                cellData00.rCell = nan;
-            end
+            nCell = numel(rCell);
+            cellData0.Frame(1:nCell,1) = f;
+            cellData0.Position(1:nCell,1) = p;
+            cellData0.ID(1:nCell,1) = randi(1E9);
+            cellData0.cCellX(1:nCell,1) = cCell(:,1);
+            cellData0.cCellY(1:nCell,1) = cCell(:,2);
+            cellData0.rCell(1:nCell,1) = rCell(:);
+            cellData0.mCell(1:nCell,1) = mCell(:);
+            
         end
         
-        cellData00 = struct2table(cellData00);
         
-        % Collect data into table
-        if f==1
-            cellData0 = cellData00;
-        else
-            cellData0 = vertcat(cellData0, cellData00);
-        end
         
         % Display identified nuclei (optional)
         if params.displayCells ~= 0
-            cellDataDisplay = cellData00;
+            cellDataDisplay = cellData0;
             if isa(cellDataDisplay,'struct')
                 cellDataDisplay = struct2table(cellDataDisplay);
             end
@@ -201,20 +206,10 @@ for p = 1:np
                 viscircles(cCell, rCell,'EdgeColor','y','LineWidth',1);
             end
         end
-        
-    end
-    
-    if p==1
-        cellData = cellData0;
-    else
-        cellData = vertcat(cellData, cellData0);
+        cellDataOut{idxData} = cellData0;
+        idxData = idxData + 1;
     end
     
 end
-
-%% Format data for output
-if isa(cellData,'struct')
-    cellData = struct2table(cellData);
-end
-cellDataOut = rmmissing(cellData); % Remove unmatched cells
+cellDataOut = vertcat(cellDataOut{:});
 toc
