@@ -1,6 +1,6 @@
 function [images, params] = loadTIFF(imagelist,imidx,channellist,nFrames,params)
 % clearvars -except imagelist params numFrames
-% tic
+tic
 % nFrames = [];
 
 imidx = 1;
