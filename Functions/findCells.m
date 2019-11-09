@@ -7,8 +7,6 @@ function cellDataOut = findCellsFast(images,channelNuc,channelCell,params,prepro
 
 tic
 
-
-
 if ~isempty(channelNuc)
     imNuc = images.(channelNuc);
     disp('Finding paired cell/nucleus ROIs')
@@ -107,9 +105,8 @@ for p = 1:np
             rCell = params.sizeCellScale*rCell;
         end
         
-        % Match nuclei to cells
-        if ~isempty(imNuc)
-            
+        % If no nuclei
+        if ~isempty(imNuc)            
             
             xy = [cCell; cNuc];
             rads = [rCell; rNuc];
@@ -145,11 +142,11 @@ for p = 1:np
             
             idxC(idxN==0)=[];
             idxN(idxN==0)=[];
-            nCell = numel(idxN);
+            nCell = numel(idxN);                      
             
             cellData0.Frame(1:nCell,1) = f;
             cellData0.Position(1:nCell,1) = p;
-            cellData0.ID(1:nCell,1) = randi([0 1E9],numel(idxC),1);
+            cellData0.ID(1:nCell,1) = randi([0 1E9],nCell,1);
             cellData0.cCellX(1:nCell,1) = cCell(idxC,1);
             cellData0.cCellY(1:nCell,1) = cCell(idxC,2);
             cellData0.rCell(1:nCell,1) = rCell(idxC);
