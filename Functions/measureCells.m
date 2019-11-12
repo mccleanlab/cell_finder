@@ -115,6 +115,7 @@ for p = 1:np
             cellDataMeasure00.([channel '_mode'])(:,1) = images.([channel '_mode'])(f,p);
             cellDataMeasure00.([channel '_Cell_mean'])(:,1) = nanmean(Cell0_mat);
             cellDataMeasure00.([channel '_Cell_median'])(:,1) = nanmedian(Cell0_mat);
+            cellDataMeasure00.([channel '_Cell_mode'])(:,1) = mode(Cell0_mat);
             cellDataMeasure00.([channel '_Cell_SD'])(:,1) = nanstd(Cell0_mat);
             cellDataMeasure00.([channel '_Cell_max'])(:,1) = nanmax(Cell0_mat);
             cellDataMeasure00.([channel '_Cell_min'])(:,1) = nanmin(Cell0_mat);
@@ -131,6 +132,7 @@ for p = 1:np
             if contains('rNuc', cellData.Properties.VariableNames)
                 cellDataMeasure00.([channel '_Nuclear_mean'])(:,1) = nanmean(Nuc0_mat);
                 cellDataMeasure00.([channel '_Nuclear_median'])(:,1) = nanmedian(Nuc0_mat);
+                cellDataMeasure00.([channel '_Nuclear_mode'])(:,1) = mode(Nuc0_mat);
                 cellDataMeasure00.([channel '_Nuclear_SD'])(:,1) = nanstd(Nuc0_mat);
                 cellDataMeasure00.([channel '_Nuclear_max'])(:,1) = nanmax(Nuc0_mat);
                 cellDataMeasure00.([channel '_Nuclear_min'])(:,1) = nanmin(Nuc0_mat);
