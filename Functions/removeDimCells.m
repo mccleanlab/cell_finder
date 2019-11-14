@@ -29,7 +29,7 @@ for p = 1:max(dataIn.Position)
     [~, idx_d] = max(d);
     channel2threshold = channels2threshold{idx_d};
     threshold = max_noncells(idx_d);
-       
+    
     if option == 0 % Delete cells below threshold
         dataOut(dataOut.Position==p & (dataOut.(channel2threshold))<threshold,:) = [];
     elseif option == 1 % Flag cells below treshold

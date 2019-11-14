@@ -75,9 +75,3 @@ params.sourceFile = filename;
 params.outputFilenameBase = erase(filename, match);
 params.outputFolder = [folder '\output\'];
 
-% 
-% %% Create output folder
-% if ~exist(params.outputFolder)
-%     mkdir(params.outputFolder)
-% end
-
