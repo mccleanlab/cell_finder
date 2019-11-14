@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 function [images, params] = loadTIFF(imagelist,imidx,channellist,nFrames,params)
 % clearvars -except imagelist params numFrames
 tic
@@ -53,7 +52,6 @@ params.outputFilenameBase = erase(filename, match);
 params.outputFolder = [folder '\output\'];
 toc
 
-=======
 function [images, params] = loadTIFF(imagelist,imidx,channellist,nFrames,params)
 % clearvars -except imagelist params numFrames
 tic
@@ -108,4 +106,3 @@ params.outputFilenameBase = erase(filename, match);
 params.outputFolder = [folder '\output\'];
 toc
 
->>>>>>> c8773e4c0868686447370b512dbbe7a236addd93
