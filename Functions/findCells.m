@@ -34,7 +34,6 @@ for p = 1:np
     % Cycle through frames
     for f = 1:nf
         cellData0 = table();
-        
         disp(['     Frame ' num2str(f) ' position ' num2str(p)])
         
         % Preprocess nuclear images
