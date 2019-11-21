@@ -28,6 +28,10 @@ w = images.iminfo.w;
 idxData = 1;
 cellDataOut = cell(np*nf,1);
 
+params.nuc_mode = mode(imNuc(:));
+params.nuc_stretchlim = stretchlim(imNuc(:) - params.nuc_mode);
+
+
 %Cycle through stage positions
 for p = 1:np
     
@@ -104,15 +108,15 @@ for p = 1:np
             rCell = params.sizeCellScale*rCell;
         end
         
-        % If no nuclei
-        if ~isempty(imNuc)            
+        % If nuclei
+        if ~isempty(imNuc)
             
             xy = [cCell; cNuc];
             rads = [rCell; rNuc];
             
             rad2 = rads(:) + rads(:)';
             dxy = sqrt((xy(:,1) - xy(:,1)').^2 + (xy(:,2) - xy(:,2)').^2 );
-            idx0 = dxy <= rad2;
+            idx0 = dxy <= params.nucCellOverlapThresh*rad2;
             idx0(1:size(xy,1)+1:end) = false;
             intersecting_circles = find(any(idx0,2));
             
@@ -141,7 +145,7 @@ for p = 1:np
             
             idxC(idxN==0)=[];
             idxN(idxN==0)=[];
-            nCell = numel(idxN);                      
+            nCell = numel(idxN);
             
             cellData0.Frame(1:nCell,1) = f;
             cellData0.Position(1:nCell,1) = p;
@@ -157,6 +161,7 @@ for p = 1:np
             cellData0.mNuc(1:nCell,1) = mNuc(idxN);
             cellData0.mNuc(1:nCell,1) = mNuc(idxN);
             
+            % If no nuclei
         elseif isempty(imNuc)
             nCell = numel(rCell);
             cellData0.Frame(1:nCell,1) = f;
