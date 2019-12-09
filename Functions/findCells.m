@@ -10,6 +10,8 @@ tic
 if ~isempty(channelNuc)
     imNuc = images.(channelNuc);
     disp('Finding paired cell/nucleus ROIs')
+    params.nuc_mode = mode(imNuc,'all');
+params.nuc_stretchlim = stretchlim(imNuc(:) - params.nuc_mode);
 else
     imNuc = [];
     disp('Finding cell ROIs only')
@@ -27,10 +29,6 @@ h = images.iminfo.h;
 w = images.iminfo.w;
 idxData = 1;
 cellDataOut = cell(np*nf,1);
-
-params.nuc_mode = mode(imNuc(:));
-params.nuc_stretchlim = stretchlim(imNuc(:) - params.nuc_mode);
-
 
 %Cycle through stage positions
 for p = 1:np
