@@ -147,7 +147,7 @@ for p = 1:np
             
             cellData0.Frame(1:nCell,1) = f;
             cellData0.Position(1:nCell,1) = p;
-            cellData0.ID(1:nCell,1) = randi([0 1E9],nCell,1);
+%             cellData0.ID(1:nCell,1) = randi([0 1E9],nCell,1);
             cellData0.cCellX(1:nCell,1) = cCell(idxC,1);
             cellData0.cCellY(1:nCell,1) = cCell(idxC,2);
             cellData0.rCell(1:nCell,1) = rCell(idxC);
@@ -211,4 +211,5 @@ for p = 1:np
     
 end
 cellDataOut = vertcat(cellDataOut{:});
+cellDataOut.ID(:,1) = randperm(size(cellDataOut,1));
 toc
