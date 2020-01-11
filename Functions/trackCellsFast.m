@@ -1,7 +1,15 @@
-function cellDataOut = trackCellsFast(data,trackVar,maxLinkDist,maxGapClose)
+% function cellDataOut = trackCellsFast(data,trackVar,maxLinkDist,maxGapClose)
 
-nf = max(data.Frame(:));
-np =  max(data.Position(:));
+% nf = max(data.Frame(:));
+% np =  max(data.Position(:));
+
+data = cellFilter;
+trackVar = 'Cells';
+maxLinkDist = 10;
+maxGapClose = 3;
+
+nf = 121;
+np = 2;
 
 for p = 1:np
     cellData = data(data.Position==p,:);
@@ -26,23 +34,30 @@ for p = 1:np
     disp('Running simpletracker');
     
     % Track data with simpletracker
-    [tracks] = simpletracker(points,'MaxLinkingDistance', maxLinkDist,'MaxGapClosing', maxGapClose);
+    [tracks, global_idx] = simpletracker(points,'MaxLinkingDistance', maxLinkDist,'MaxGapClosing', maxGapClose);
     
     disp('Formatting data for output')
+    %%
+    all_points = vertcat(points{:});
     
-    % Format output data
-    for c = 1:numel(tracks)
-        c_idx = tracks{c,1};
-        c_idx(isnan(c_idx))=[];
-        cellData.TrackID(c_idx) = c;
-    end
     
-    cellDataOut{p} = cellData;    
+        % Format output data
+        for c = 1:numel(global_idx)
+            trackData0 = table();
+            c_idx = global_idx{c,1};
+            
+            trackData0.Position(:,1) = p;
+            trackData0.cCellX(:,1) = all_points(c_idx,1);
+            trackData0.cCellY(:,1) = all_points(c_idx,2);
+            trackData0.TrackID(:,1) = c;
+            
+            trackData{c} = trackData0;
+        end
+       trackData = vertcat(trackData{:});
+
 end
 
-cellDataOut = vertcat(cellDataOut{:});
+cellDataOut = innerjoin(data,trackData);
 
-% cellDataTrackOut = struct2table(cellDataTrackOut);
-% cellDataTrackOut = innerjoin(cellData,cellDataTrackOut);
-% cellDataTrackOut = removevars(cellDataTrackOut,{'ID'});
+
 
