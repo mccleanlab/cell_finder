@@ -1,5 +1,6 @@
 function dataOut = removeDimCells(dataIn,channels2threshold,threshold,option,frame2cluster)
 dataOut = dataIn;
+
 for p = 1:max(dataIn.Position)
     
     data0 = dataIn(dataIn.Frame==frame2cluster & dataIn.Position==p,:);
@@ -28,8 +29,11 @@ for p = 1:max(dataIn.Position)
     d = min_cells(:,1:end-1) - max_noncells(:,1:end-1);
     [~, idx_d] = max(d);
     channel2threshold = channels2threshold{idx_d};
-    threshold = max_noncells(idx_d);
     
+    if isempty(threshold)
+        threshold = max_noncells(idx_d);
+    end
+        
     if option == 0 % Delete cells below threshold
         dataOut(dataOut.Position==p & (dataOut.(channel2threshold))<threshold,:) = [];
     elseif option == 1 % Flag cells below treshold

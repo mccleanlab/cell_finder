@@ -11,7 +11,7 @@ if ~isempty(channelNuc)
     imNuc = images.(channelNuc);
     disp('Finding paired cell/nucleus ROIs')
     params.nuc_mode = mode(imNuc,'all');
-params.nuc_stretchlim = stretchlim(imNuc(:) - params.nuc_mode);
+    params.nuc_stretchlim = stretchlim(imNuc(:) - params.nuc_mode);
 else
     imNuc = [];
     disp('Finding cell ROIs only')
@@ -201,7 +201,7 @@ for p = 1:np
                 imshow(imNuc0)
                 viscircles(cNuc, rNuc,'EdgeColor','r','LineWidth',1);
             elseif params.displayCells==4 % Show potential cells
-                imshow(imCell0)
+                imshow(imCell0,[])
                 viscircles(cCell, rCell,'EdgeColor','y','LineWidth',1);
             end
         end

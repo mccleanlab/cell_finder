@@ -78,7 +78,7 @@ for p = 1:np
         % Label identified cells
         if params.displayCellNumber==1 && ismember('TrackID', cellDataDisplay.Properties.VariableNames)
             for i = 1:length(cellDataDisplay.TrackID)
-                txt = text(cellDataDisplay.cCellX(i) + 0, cellDataDisplay.cCellY(i) + 0, sprintf('%d', cellDataDisplay.TrackID(i)));
+%                 txt = text(cellDataDisplay.cCellX(i) + 0, cellDataDisplay.cCellY(i) + 0, sprintf('%d', cellDataDisplay.TrackID(i)));
                 txt.HorizontalAlignment='center';
                 txt.VerticalAlignment='middle';
                 txt.Color = 'y';

@@ -46,7 +46,7 @@ for p = 1:np
             data0 = dataIn(dataIn.Frame==f & dataIn.Position==p,:);
             
             % Draw cells
-            %             viscircles([data0.cCellX, data0.cCellY], data0.rCell,'EdgeColor','y','LineWidth',0.25);
+            viscircles([data0.cCellX, data0.cCellY], data0.rCell,'EdgeColor','y','LineWidth',0.25);
             
             % Draw nuclei
             if ismember('rNuc', dataIn.Properties.VariableNames)
