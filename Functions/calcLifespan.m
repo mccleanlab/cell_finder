@@ -1,8 +1,9 @@
 function dataOut = calcLifespan(dataIn)
+% Calculates lifespan of cells by track ID and appends to table
 
-track_list = table();
-track_list.TrackID = unique(dataIn.TrackID);
-track_list.Lifespan  = histc(dataIn.TrackID,track_list.TrackID);
+tracks = table();
+tracks.TrackID = unique(dataIn.TrackID);
+tracks.Lifespan  = histc(dataIn.TrackID,tracks.TrackID);
 
-dataOut = join(dataIn,track_list);
+dataOut = join(dataIn,tracks);
 

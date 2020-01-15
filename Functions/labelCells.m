@@ -1,7 +1,8 @@
 function dataOut = labelCells(dataIn,label_max)
+% Labels cells by track ID with random integer between 1 and label_max
 
-cell_list = table();
-cell_list.TrackID = unique(dataIn.TrackID);
-cell_list.Label  = randi(label_max,[numel(unique(dataIn.TrackID)), 1]);
+labels = table();
+labels.TrackID = unique(dataIn.TrackID);
+labels.Label  = randi(label_max,[numel(unique(dataIn.TrackID)), 1]);
 
-dataOut = join(dataIn,cell_list);
+dataOut = join(dataIn,labels);
