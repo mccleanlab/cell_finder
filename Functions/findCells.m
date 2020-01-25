@@ -10,7 +10,8 @@ tic
 if ~isempty(channelNuc)
     imNuc = images.(channelNuc);
     disp('Finding paired cell/nucleus ROIs')
-    params.nuc_mode = mode(imNuc,'all');
+%     params.nuc_mode = mode(imNuc,'all');
+    params.nuc_mode = mode(images.([channelNuc '_mode']),'all');
     params.nuc_stretchlim = stretchlim(imNuc(:) - params.nuc_mode);
 else
     imNuc = [];
@@ -42,7 +43,8 @@ for p = 1:np
         if ~isempty(imNuc)
             imNuc0 = imNuc(:,:,f,p);
             [imNuc0, params] = preprocess_imNuc(imNuc0,params);
-            nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
+%             nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
+            nucEdgeThresh = params.nucEdgeThresh;
         end
         
         % Preprocess cell images
