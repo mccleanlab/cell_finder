@@ -48,7 +48,7 @@ for p = 1:np
     
     for c = 1:numel(global_idx)
         trackData0 = table();
-        c_idx = global_idx{c,1};      
+        c_idx = global_idx{c,1};
         
         trackData0.ID(:,1) = all_ids(c_idx);
         trackData0.Position(:,1) = p;
@@ -61,4 +61,5 @@ end
 
 trackData = vertcat(trackData{:});
 dataOut = innerjoin(dataIn,trackData);
-
+dataOut =  calcLifespan(dataOut);
+dataOut = sortrows(dataOut,{'TrackID','Frame'},{'Ascend','Ascend'});

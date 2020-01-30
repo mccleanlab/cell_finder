@@ -36,9 +36,9 @@ for p = 1:np
             im0 = imadjust(im0);
         end
         
-        fig = figure('Position',[100, 100, w, h]);
-        set(gcf,'visible','off')
-        imshow(im0,[])
+                fig = figure();
+                set(gcf,'visible','off')
+        imshow(im0,[],'Border','tight','InitialMagnification',75)
         
         % Overlay cell features/IDs (if applicable)
         if ~isempty(dataIn)
@@ -54,7 +54,7 @@ for p = 1:np
             end
             
             % Draw track IDs
-            if params.displayCellNumber==1 && ismember('TrackID', data0.Properties.VariableNames)
+            if params.displayTrackID==1 && ismember('TrackID', data0.Properties.VariableNames)
                 for c = 1:length(data0.TrackID)
                     txt = text(data0.cCellX(c) + 0, data0.cCellY(c) + 0, sprintf('%d', data0.TrackID(c)));
                     txt.HorizontalAlignment='center';
@@ -67,7 +67,7 @@ for p = 1:np
         data0 =[];
         
         % Export images
-        truesize(fig)
+        truesize(fig)       
         fig = getframe(fig);
         imdata = fig.cdata;
         imwrite(imdata, [pwd '\output\' params.outputFilenameBase '_cellTracks_p' num2str(p) '.tif'],'WriteMode','append');
