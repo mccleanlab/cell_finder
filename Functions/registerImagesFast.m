@@ -1,9 +1,12 @@
-function [imOut,xformOut] = registerImagesFast(images,channel,xformIn)
+function [imOut,xformOut] = registerImagesFast(images,channel,xformIn,fill)
 % Registers each image to prevous frame using dftregistration
 % mathworks.com/matlabcentral/fileexchange/18401-efficient-subpixel-image-registration-by-cross-correlation
 
 im = images.(channel);
-fill = images.([channel '_mode']);
+
+if isempty(fill)
+    fill = images.([channel '_mode']);
+end
 
 disp(['Registering ' channel ' images'])
 
