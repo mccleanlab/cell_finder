@@ -3,15 +3,16 @@ function [imOut,xformOut] = registerImagesFast(images,channel,xformIn)
 % mathworks.com/matlabcentral/fileexchange/18401-efficient-subpixel-image-registration-by-cross-correlation
 
 im = images.(channel);
-fill = images.([channel '_mode']);
+% fill = images.([channel '_mode']);
+
 
 disp(['Registering ' channel ' images'])
 
 % Parameters
-usfac = 100;
+usfac = 1;
 nf = size(im,3);
 np = size(im,4);
-
+fill = zeros(nf,np);
 
 % Register images
 if isempty(xformIn)
