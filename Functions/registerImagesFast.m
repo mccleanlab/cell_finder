@@ -1,12 +1,8 @@
-function [imOut,xformOut] = registerImagesFast(images,channel,xformIn,fill)
+function [imOut,xformOut] = registerImagesFast(images,channel,xformIn)
 % Registers each image to prevous frame using dftregistration
 % mathworks.com/matlabcentral/fileexchange/18401-efficient-subpixel-image-registration-by-cross-correlation
 
 im = images.(channel);
-
-if isempty(fill)
-    fill = images.([channel '_mode']);
-end
 
 disp(['Registering ' channel ' images'])
 
@@ -14,7 +10,7 @@ disp(['Registering ' channel ' images'])
 usfac = 1;
 nf = size(im,3);
 np = size(im,4);
-fill = zeros(nf,np);
+fill = 0;
 
 % Register images
 if isempty(xformIn)
@@ -29,7 +25,7 @@ if isempty(xformIn)
                 targetFrame=f-1;
                 [xform, ~] = dftregistration(fft2(im2double(im(:,:,targetFrame,p))),fft2(im2double(im(:,:,f,p))),usfac);
                 xformOut(f,p).affineParams = xformOut(f-1,p).affineParams + xform;
-                imReg = imtranslate(im(:,:,f,p),[xformOut(f,p).affineParams(4), xformOut(f,p).affineParams(3)],'FillValues',fill(f,p));
+                imReg = imtranslate(im(:,:,f,p),[xformOut(f,p).affineParams(4), xformOut(f,p).affineParams(3)],'FillValues',fill);
             end
             imOut(:,:,f,p) = imReg;
         end
@@ -44,7 +40,7 @@ else
             else
                 targetFrame=f-1;
                 xform = xformIn(f,p).affineParams;
-                imReg = imtranslate(im(:,:,f,p),[xform(4), xform(3)],'FillValues',fill(f,p));
+                imReg = imtranslate(im(:,:,f,p),[xform(4), xform(3)],'FillValues',fill);
             end
             imOut(:,:,f,p) = imReg;
             xformOut(f,p).affineParams = [];
