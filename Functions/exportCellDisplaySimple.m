@@ -33,11 +33,12 @@ for p = 1:np
         if ~isempty(preprocess_im)
             [im0, ~] = preprocess_im(im0,params);
         else
+            im0(im0==0) = mode(im0(im0~=0),'all');
             im0 = imadjust(im0);
         end
         
-                fig = figure();
-                set(gcf,'visible','off')
+        fig = figure();
+        set(gcf,'visible','off')
         imshow(im0,[],'Border','tight','InitialMagnification',75)
         
         % Overlay cell features/IDs (if applicable)
@@ -67,7 +68,7 @@ for p = 1:np
         data0 =[];
         
         % Export images
-        truesize(fig)       
+        truesize(fig)
         fig = getframe(fig);
         imdata = fig.cdata;
         imwrite(imdata, [pwd '\output\' params.outputFilenameBase '_cellTracks_p' num2str(p) '.tif'],'WriteMode','append');
