@@ -4,13 +4,10 @@ function [imOut,xformOut] = registerImagesFast(images,channel,xformIn)
 
 im = images.(channel);
 
-<<<<<<< HEAD
 % if isempty(fill)
 %     fill = images.([channel '_mode']);
 % end
 
-=======
->>>>>>> 31aeae68e34e69945434b3b14afde8d2699c935d
 disp(['Registering ' channel ' images'])
 
 % Parameters
