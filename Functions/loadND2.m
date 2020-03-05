@@ -1,7 +1,8 @@
 function [images, params, im] = loadND2(imagelist,imidx,channellist,numFrames,numPositions,params)
 % numFrames = [];
-% numPositions = 5;
+% numPositions = 8;
 % imidx = 1;
+% imagelist = selectImages();
 
 imfile = imagelist{imidx};
 [~, filename, ext] = fileparts(imfile);
