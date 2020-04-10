@@ -24,7 +24,11 @@ for p = 1:np
         alpha = nan(nCell,1);
         
         im0 = images.(channelCell)(:,:,f,p);
-        im = preprocess_imEllipse(im0,BG);
+        if ~isempty(preprocess_imEllipse)
+            im = preprocess_imEllipse(im0,BG);
+        else
+            im = im0;
+        end
         padsize = [100 100];
         im = padarray(im,padsize,'replicate');
         
@@ -34,7 +38,7 @@ for p = 1:np
             cY = cellData0.cCellY(c);
             cR = cellData0.rCell(c);
             
-            cS = 1.5;
+            cS = 2;
             
             imC = imcrop(im, [cX + padsize(1) - cS*cR, cY + padsize(2) - cS*cR, cS*2*cR, cS*2*cR]);
             
@@ -45,9 +49,11 @@ for p = 1:np
             mask = false(imX,imY);
             mask = mask | hypot(xx - xc, yy - yc) >= 0.75*cR & hypot(xx - xc, yy - yc) <= cS*cR;
             
-            imC = edge(imC,'canny',0.75);
+            
+            %             imC = edge(imC,'canny',0.75);
             imC(~mask)=0;
-            imC = bwareaopen(imC, 30);
+            %             imC = bwareaopen(imC, 30);
+            imshow(imC);
             
             ellipseParams = [];
             ellipseParams.cR = cR;
@@ -67,6 +73,7 @@ for p = 1:np
             
             if displayEllipses==1
                 clf
+                
                 imshow(imC,[],'InitialMagnification',400); hold on
                 ellipse(a(c),b(c),alpha(c),bestFits(1),bestFits(2),'y')
                 pause(1)

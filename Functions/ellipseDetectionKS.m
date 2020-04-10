@@ -192,5 +192,6 @@ for p=pairSubset
             bestFits = bestFits(si,:);
         end
     end
+    assignin('base','bestFits',bestFits)
 end
 end
