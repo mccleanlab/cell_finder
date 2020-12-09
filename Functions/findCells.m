@@ -13,6 +13,7 @@ if ~isempty(channelNuc)
 %     params.nuc_mode = mode(imNuc,'all');
     params.nuc_mode = mode(images.([channelNuc '_mode']),'all');
     params.nuc_stretchlim = stretchlim(imNuc(:) - params.nuc_mode);
+    [h, w, nf, np] = size(imNuc);
 else
     imNuc = [];
     disp('Finding cell ROIs only')
@@ -20,14 +21,11 @@ end
 
 if ~isempty(channelCell)
     imCell = images.(channelCell);
+    [h, w, nf, np] = size(imCell);
 else
     disp('Must input cell image');
 end
 
-nf = images.iminfo.nf;
-np = images.iminfo.np;
-h = images.iminfo.h;
-w = images.iminfo.w;
 idxData = 1;
 cellDataOut = cell(np*nf,1);
 
@@ -41,7 +39,8 @@ for p = 1:np
         
         % Preprocess nuclear images
         if ~isempty(imNuc)
-            imNuc0 = imNuc(:,:,f,p);
+            imNuc0 = imNuc(:,:,f,p); 
+            imNuc0(imNuc0==0)=mode(imNuc0(imNuc0~=0),'all');
             [imNuc0, params] = preprocess_imNuc(imNuc0,params);
 %             nucEdgeThresh = params.nucEdgeThresh*graythresh(imNuc0);
             nucEdgeThresh = params.nucEdgeThresh;
@@ -50,8 +49,10 @@ for p = 1:np
         % Preprocess cell images
         if ~isempty(imCell)
             imCell0 = imCell(:,:,f,p);
+            imCell0(imCell0==0)=mode(imCell0(imCell0~=0),'all');
+            params.p_current = p;
             [imCell0, params] = preprocess_imCell(imCell0,params);
-            %             cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
+%                         cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
             cellEdgeThresh = params.cellEdgeThresh;
         end
         
@@ -121,8 +122,7 @@ for p = 1:np
                 idxtrim = idx0(1:nCell,(nCell+1):end);
                 maxCol = max(sum(idxtrim,2));
                 mNuc2D = repmat(mNuc,[nCell,maxCol]);
-                idxN0 = zeros(nCell,maxCol);
-                
+                idxN0 = zeros(nCell,maxCol);                
                 
                 for c = 1:nCell
                     [~, idx] = find(idxtrim(c,:));
@@ -182,26 +182,29 @@ for p = 1:np
                 cellDataDisplay = rmmissing(cellDataDisplay);
                 figure;
                 if params.displayCells==1 % Show matched nucleus/cell pairs
-                    imCell0 = imCell(:,:,f,p);
-                    imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);
-                    imshow(imCell0)
-                    viscircles([cellDataDisplay.cNucX, cellDataDisplay.cNucY] , cellDataDisplay.rNuc,'EdgeColor','r','LineWidth',1);
-                    viscircles([cellDataDisplay.cCellX, cellDataDisplay.cCellY] , cellDataDisplay.rCell,'EdgeColor','y','LineWidth',1);
+%                     imCell0 = imCell(:,:,f,p);
+%                     imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);
+                    imshow(imCell0,[])
+                    viscircles([cellDataDisplay.cNucX, cellDataDisplay.cNucY] , cellDataDisplay.rNuc,'EdgeColor','r','LineWidth',0.1);
+                    viscircles([cellDataDisplay.cCellX, cellDataDisplay.cCellY] , cellDataDisplay.rCell,'EdgeColor','y','LineWidth',0.1);
                     %                 for i = 1:length(cellDataDisplay.ID)
                     %                     text(cellDataDisplay.cNucX(i) + 25, cellDataDisplay.cNucY(i) + 8, sprintf('%d', i),'HorizontalAlignment','center','VerticalAlignment','middle','Color','r');
                     %                 end
                 elseif params.displayCells==2 % Show all potential cells/nuclei
-                    imCell0 = imCell(:,:,f,p);
-                    imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);
-                    imshow(imCell0)
-                    viscircles(cNuc, rNuc,'EdgeColor','r','LineWidth',1);
-                    viscircles(cCell, rCell,'EdgeColor','y','LineWidth',1);
+%                     imCell0 = imCell(:,:,f,p);
+%                     imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);
+                    imshow(imCell0,[])
+                    viscircles(cNuc, rNuc,'EdgeColor','r','LineWidth',0.1);
+                    viscircles(cCell, rCell,'EdgeColor','y','LineWidth',0.1);
                 elseif params.displayCells==3 % Show potential nuclei
-                    imshow(imNuc0)
-                    viscircles(cNuc, rNuc,'EdgeColor','r','LineWidth',1);
+                    imshow(imNuc0,[])
+                    viscircles(cNuc, rNuc,'EdgeColor','r','LineWidth',0.1);
                 elseif params.displayCells==4 % Show potential cells
                     imshow(imCell0,[])
-                    viscircles(cCell, rCell,'EdgeColor','y','LineWidth',1);
+                    viscircles(cCell, rCell,'EdgeColor','y','LineWidth',0.1);
+                elseif params.displayCells==5 % Show filtered cells
+                     imshow(imCell0,[])
+                    viscircles([cellDataDisplay.cCellX, cellDataDisplay.cCellY] , cellDataDisplay.rCell,'EdgeColor','y','LineWidth',0.1);
                 end
             end
             

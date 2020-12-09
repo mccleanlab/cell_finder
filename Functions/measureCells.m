@@ -55,6 +55,21 @@ for p = 1:np
             end
             
             
+            % Create mask to measure BG
+            mask = zeros(h,w,'logical');
+            for c = 1:nc
+                mask(idxCell{:,c})=1;
+            end
+            
+            assignin('base','mask',mask);
+                        
+            % Calculate confluency based on cell ROIs
+            confluency = mask;
+            confluency = imdilate(confluency,strel('disk',3));
+            confluency = bwmorph(confluency,'bridge');
+            confluency = imfill(confluency,8,'holes');
+            confluency = sum(confluency,'all')/(h*w);
+            
             for i = 1:numel(channellist)
                 
                 % Set image to measure and replace zeros with nan
@@ -62,6 +77,8 @@ for p = 1:np
                 imMeasure0 = images.(channel)(:,:,f,p);
                 imMeasure0 = double(imMeasure0);
                 imMeasure0(imMeasure0==0)=nan;
+                
+                BG = mode(imMeasure0(~mask),'all');
                 
                 if ~contains('rNuc', cellData.Properties.VariableNames)
                     % Make array of cell measurements for channel
@@ -114,45 +131,47 @@ for p = 1:np
                 
                 % Measure cells
                 cellDataMeasure00.([channel '_mode'])(:,1) = images.([channel '_mode'])(f,p);
-                cellDataMeasure00.([channel '_Cell_mean'])(:,1) = nanmean(Cell0_mat);
-                cellDataMeasure00.([channel '_Cell_median'])(:,1) = nanmedian(Cell0_mat);
-                cellDataMeasure00.([channel '_Cell_mode'])(:,1) = mode(Cell0_mat);
-                cellDataMeasure00.([channel '_Cell_SD'])(:,1) = nanstd(Cell0_mat);
-                cellDataMeasure00.([channel '_Cell_max'])(:,1) = nanmax(Cell0_mat);
-                cellDataMeasure00.([channel '_Cell_min'])(:,1) = nanmin(Cell0_mat);
-                cellDataMeasure00.([channel '_Cell_sum'])(:,1) = nansum(Cell0_mat);
-                cellDataMeasure00.([channel '_Cell_upperquartile'])(:,1) = quantile(Cell0_mat,0.75);
-                cellDataMeasure00.([channel '_Cell_lowerquartile'])(:,1) = quantile(Cell0_mat,0.25);
-                cellDataMeasure00.([channel '_Cell_95prctile'])(:,1) = quantile(Cell0_mat,0.95);
-                cellDataMeasure00.([channel '_Cell_5prctile'])(:,1) = quantile(Cell0_mat,0.05);
+                cellDataMeasure00.([channel '_BG'])(:,1) = BG;
+                cellDataMeasure00.([channel '_confluency'])(:,1) = confluency;
+                cellDataMeasure00.([channel '_cell_mean'])(:,1) = nanmean(Cell0_mat);
+                cellDataMeasure00.([channel '_cell_median'])(:,1) = nanmedian(Cell0_mat);
+                cellDataMeasure00.([channel '_cell_mode'])(:,1) = mode(Cell0_mat);
+                cellDataMeasure00.([channel '_cell_SD'])(:,1) = nanstd(Cell0_mat);
+                cellDataMeasure00.([channel '_cell_max'])(:,1) = nanmax(Cell0_mat);
+                cellDataMeasure00.([channel '_cell_min'])(:,1) = nanmin(Cell0_mat);
+                cellDataMeasure00.([channel '_cell_sum'])(:,1) = nansum(Cell0_mat);
+                cellDataMeasure00.([channel '_cell_upperquartile'])(:,1) = quantile(Cell0_mat,0.75);
+                cellDataMeasure00.([channel '_cell_lowerquartile'])(:,1) = quantile(Cell0_mat,0.25);
+                cellDataMeasure00.([channel '_cell_95prctile'])(:,1) = quantile(Cell0_mat,0.95);
+                cellDataMeasure00.([channel '_cell_5prctile'])(:,1) = quantile(Cell0_mat,0.05);
                 
-                cellDataMeasure00.([channel '_max15px'])(:,1) = nanmean(Cell0_mat(1:14,:));
-                cellDataMeasure00.([channel '_dimpx'])(:,1) = nanmean(Cell0_mat(14:end,:));
+                cellDataMeasure00.([channel '_cell_max15px'])(:,1) = nanmean(Cell0_mat(1:14,:));
+                cellDataMeasure00.([channel '_cell_dimpx'])(:,1) = nanmean(Cell0_mat(14:end,:));
                 
                 % Measure cellular compartments if nuclear marker present
                 if contains('rNuc', cellData.Properties.VariableNames)
-                    cellDataMeasure00.([channel '_Nuclear_mean'])(:,1) = nanmean(Nuc0_mat);
-                    cellDataMeasure00.([channel '_Nuclear_median'])(:,1) = nanmedian(Nuc0_mat);
-                    cellDataMeasure00.([channel '_Nuclear_mode'])(:,1) = mode(Nuc0_mat);
-                    cellDataMeasure00.([channel '_Nuclear_SD'])(:,1) = nanstd(Nuc0_mat);
-                    cellDataMeasure00.([channel '_Nuclear_max'])(:,1) = nanmax(Nuc0_mat);
-                    cellDataMeasure00.([channel '_Nuclear_min'])(:,1) = nanmin(Nuc0_mat);
-                    cellDataMeasure00.([channel '_Nuclear_sum'])(:,1) = nansum(Nuc0_mat);
-                    cellDataMeasure00.([channel '_Nuclear_upperquartile'])(:,1) = quantile(Nuc0_mat,0.75);
-                    cellDataMeasure00.([channel '_Nuclear_lowerquartile'])(:,1) = quantile(Nuc0_mat,0.25);
-                    cellDataMeasure00.([channel '_Nuclear_95prctile'])(:,1) = quantile(Nuc0_mat,0.95);
-                    cellDataMeasure00.([channel '_Nuclear_5prctile'])(:,1) = quantile(Nuc0_mat,0.05);
+                    cellDataMeasure00.([channel '_nuclear_mean'])(:,1) = nanmean(Nuc0_mat);
+                    cellDataMeasure00.([channel '_nuclear_median'])(:,1) = nanmedian(Nuc0_mat);
+                    cellDataMeasure00.([channel '_nuclear_mode'])(:,1) = mode(Nuc0_mat);
+                    cellDataMeasure00.([channel '_nuclear_SD'])(:,1) = nanstd(Nuc0_mat);
+                    cellDataMeasure00.([channel '_nuclear_max'])(:,1) = nanmax(Nuc0_mat);
+                    cellDataMeasure00.([channel '_nuclear_min'])(:,1) = nanmin(Nuc0_mat);
+                    cellDataMeasure00.([channel '_nuclear_sum'])(:,1) = nansum(Nuc0_mat);
+                    cellDataMeasure00.([channel '_nuclear_upperquartile'])(:,1) = quantile(Nuc0_mat,0.75);
+                    cellDataMeasure00.([channel '_nuclear_lowerquartile'])(:,1) = quantile(Nuc0_mat,0.25);
+                    cellDataMeasure00.([channel '_nuclear_95prctile'])(:,1) = quantile(Nuc0_mat,0.95);
+                    cellDataMeasure00.([channel '_nuclear_5prctile'])(:,1) = quantile(Nuc0_mat,0.05);
                     
-                    cellDataMeasure00.([channel '_Cyto_mean'])(:,1) = nanmean(Cyto0_mat);
-                    cellDataMeasure00.([channel '_Cyto_median'])(:,1) = nanmedian(Cyto0_mat);
-                    cellDataMeasure00.([channel '_Cyto_SD'])(:,1) = nanstd(Cyto0_mat);
-                    cellDataMeasure00.([channel '_Cyto_max'])(:,1) = nanmax(Cyto0_mat);
-                    cellDataMeasure00.([channel '_Cyto_min'])(:,1) = nanmin(Cyto0_mat);
-                    cellDataMeasure00.([channel '_Cyto_sum'])(:,1) = nansum(Cyto0_mat);
-                    cellDataMeasure00.([channel '_Cyto_upperquartile'])(:,1) = quantile(Cyto0_mat,0.75);
-                    cellDataMeasure00.([channel '_Cyto_lowerquartile'])(:,1) = quantile(Cyto0_mat,0.25);
-                    cellDataMeasure00.([channel '_Cyto_95prctile'])(:,1) = quantile(Cyto0_mat,0.95);
-                    cellDataMeasure00.([channel '_Cyto_5prctile'])(:,1) = quantile(Cyto0_mat,0.05);
+                    cellDataMeasure00.([channel '_cyto_mean'])(:,1) = nanmean(Cyto0_mat);
+                    cellDataMeasure00.([channel '_cyto_median'])(:,1) = nanmedian(Cyto0_mat);
+                    cellDataMeasure00.([channel '_cyto_SD'])(:,1) = nanstd(Cyto0_mat);
+                    cellDataMeasure00.([channel '_cyto_max'])(:,1) = nanmax(Cyto0_mat);
+                    cellDataMeasure00.([channel '_cyto_min'])(:,1) = nanmin(Cyto0_mat);
+                    cellDataMeasure00.([channel '_cyto_sum'])(:,1) = nansum(Cyto0_mat);
+                    cellDataMeasure00.([channel '_cyto_upperquartile'])(:,1) = quantile(Cyto0_mat,0.75);
+                    cellDataMeasure00.([channel '_cyto_lowerquartile'])(:,1) = quantile(Cyto0_mat,0.25);
+                    cellDataMeasure00.([channel '_cyto_95prctile'])(:,1) = quantile(Cyto0_mat,0.95);
+                    cellDataMeasure00.([channel '_cyto_5prctile'])(:,1) = quantile(Cyto0_mat,0.05);
                 end
             end
             cellDataMeasure{idx} = cellDataMeasure00;

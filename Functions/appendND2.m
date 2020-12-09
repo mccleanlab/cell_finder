@@ -6,7 +6,7 @@ function [images, params] = appendND2(imagelist,channels,numFrames,numPositions,
 channels2mode =  strcat(channels,'_mode');
 
 for idx = 1:numel(imagelist)
-    [im0(idx), params, ~] = loadND2(imagelist,idx,channels,numFrames,numPositions,params);       
+    [im0(idx), params] = loadND2(imagelist,idx,channels,numFrames,numPositions,params);       
 end
 
 %%

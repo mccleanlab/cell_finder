@@ -3,24 +3,26 @@ tic
 disp('Exporting movie of tracked cells tracks')
 
 im = images.(channel);
-[h, w, nf, np] = size(im);
+[~, ~, nf, np] = size(im);
 
 % Create output folder
-if ~exist([pwd '\output'])
-    mkdir([pwd '\output'])
+if ~exist(params.outputFolder)
+    mkdir(params.outputFolder)
 end
 
 % Delete existing output images
-if exist([pwd '\output\' params.outputFilenameBase '_cellTracks' '.tif'])~=0
-    delete([pwd '\output\' params.outputFilenameBase '_cellTracks' '.tif']);
-end
 
-for p = 1:np
-    if exist([pwd '\output\' params.outputFilenameBase '_cellTracks_p' num2str(p) '.tif'])~=0
-        delete([pwd '\output\' params.outputFilenameBase '_cellTracks_p' num2str(p) '.tif']);
+if nf==1
+    if exist([params.outputFolder '\' params.outputFilenameBase '_cellTracks' '.tif'])~=0
+        delete([params.outputFolder '\' params.outputFilenameBase '_cellTracks' '.tif']);
+    end
+else
+    for p = 1:np
+        if exist([params.outputFolder '\' params.outputFilenameBase '_cellTracks_p' num2str(p) '.tif'])~=0
+            delete([params.outputFolder '\' params.outputFilenameBase '_cellTracks_p' num2str(p) '.tif']);
+        end
     end
 end
-
 
 for p = 1:np
     
@@ -71,7 +73,11 @@ for p = 1:np
         truesize(fig)
         fig = getframe(fig);
         imdata = fig.cdata;
-        imwrite(imdata, [pwd '\output\' params.outputFilenameBase '_cellTracks_p' num2str(p) '.tif'],'WriteMode','append');
+        if nf==1
+            imwrite(imdata, [params.outputFolder '\' params.outputFilenameBase '_cellTracks' '.tif'],'WriteMode','append');
+        else
+            imwrite(imdata, [params.outputFolder '\' params.outputFilenameBase '_cellTracks_p' num2str(p) '.tif'],'WriteMode','append');
+        end
         close;
         
     end

@@ -1,12 +1,13 @@
-function dataOut = removeDimCells(dataIn,channels2threshold,threshold,option,frame2cluster)
+function dataOut = removeDimCells(dataIn,channels2threshold,threshold,delete_cells,frame2cluster)
 dataOut = dataIn;
 
 for p = 1:max(dataIn.Position)
-%     try
-    data0 = dataIn(dataIn.Frame==frame2cluster & dataIn.Position==p,:);
-    data2cluster = [];
+    %     try
+    
     
     if isempty(threshold)
+        data0 = dataIn(dataIn.Frame==frame2cluster & dataIn.Position==p,:);
+        data2cluster = [];
         
         % Cluster potential cells by channel2cluster
         for i = 1:numel(channels2threshold)
@@ -30,21 +31,20 @@ for p = 1:max(dataIn.Position)
         % Find channel with greatest separation between clusters and set
         d = min_cells(:,1:end-1) - max_noncells(:,1:end-1);
         [~, idx_d] = max(d);
-        channel2threshold = channels2threshold{idx_d};        
+        channel2threshold = channels2threshold{idx_d};
         
         threshold = max_noncells(idx_d);
         
     else
         channel2threshold = channels2threshold{1};
-        
     end
     
-    if option == 0 % Delete cells below threshold
+    if delete_cells == true % Delete cells below threshold
         dataOut(dataOut.Position==p & (dataOut.(channel2threshold))<threshold,:) = [];
-    elseif option == 1 % Flag cells below treshold
+    elseif delete_cells == false % Flag cells below treshold
         dataOut.FalsePositive(dataOut.Position==p) = 0;
         dataOut.FalsePositive((dataOut.Position==p) & dataOut.(channel2threshold)<threshold) = 1;
     end
-%     catch
-        
+    %     catch
+    
 end
