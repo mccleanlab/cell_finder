@@ -54,10 +54,11 @@ end
 for f = 1:size(files,1)
     
     data0 = readtable(fullfile(files.folder{f},files.name{f}));
-    try
+%     try
         dataOut = [dataOut; data0];
-    catch
-        disp(['ERROR: ' file]);
-    end
+%     catch
+%         
+%         disp(['ERROR: ' files.name{f}]);
+%     end
 end
 

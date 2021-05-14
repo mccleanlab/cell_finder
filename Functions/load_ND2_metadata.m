@@ -8,6 +8,7 @@ function [images, params] = loadND2(image_list,im_idx,channel_list,n_frames,n_po
 % Select image from list
 im_file = image_list{im_idx};
 [~, filename, ext] = fileparts(im_file);
+
 disp(['Loading ' filename]);
 
 % Load selected image
@@ -47,6 +48,7 @@ for series = 1:n_series
         channel = regexprep(channel,'\C=|\C\?=','');
         channel = regexprep(channel,'\/\d*','');
         channel = str2double(channel);
+                
         channel_name = channel_list(channel);
         channel_name = channel_name{:};
         
@@ -126,9 +128,9 @@ images.iminfo.nf = size(images.(channel_list{1}),3);
 images.iminfo.np = size(images.(channel_list{1}),4);
 
 % Get and save image info
-[folder, filename, ext] = fileparts(im_file);
+% [folder, filename, ext] = fileparts(im_file);
 match = [ext, channel_list];
 params.sourceFile = filename;
 params.outputFilenameBase = erase(filename, match);
-params.outputFolder = [folder '\output\'];
+params.outputFolder = fullfile(pwd, '\output');
 

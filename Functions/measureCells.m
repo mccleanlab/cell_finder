@@ -5,20 +5,23 @@ function cellDataMeasure = measureCells(images,channellist,cellData,params)
 % channellist = {'mCherry','DIC'};
 
 disp('Measuring cells:')
-nf = images.iminfo.nf;
-np = images.iminfo.np;
-w = images.iminfo.w;
-h = images.iminfo.h;
+[h, w, nf, np] = size(images.(channellist{1}));
+% nf = images.iminfo.nf;
+% np = images.iminfo.np;
+% w = images.iminfo.w;
+% h = images.iminfo.h;
 theta = 0:0.1:2*pi;
 
 idx = 1;
 cellDataMeasure = cell(np*nf,1);
 
+t_measure = tic;
+
 %Cycle through positions
 for p = 1:np
     % Cycle through frames
     for f = 1:nf
-        try
+%         try
             disp(['     Frame ' num2str(f) ' position ' num2str(p)])
             
             cellDataMeasure00 = cellData(cellData.Frame==f & cellData.Position==p,:);
@@ -54,7 +57,6 @@ for p = 1:np
                 end
             end
             
-            
             % Create mask to measure BG
             mask = zeros(h,w,'logical');
             for c = 1:nc
@@ -62,7 +64,7 @@ for p = 1:np
             end
             
             assignin('base','mask',mask);
-                        
+            
             % Calculate confluency based on cell ROIs
             confluency = mask;
             confluency = imdilate(confluency,strel('disk',3));
@@ -129,8 +131,21 @@ for p = 1:np
                     end
                 end
                 
+                % Fill empty arrays with nan to avoid errors when measuring
+                if isempty(Cell0_mat)
+                    Cell0_mat = nan(15,size(Cell0_mat,2));
+                end
+                
+                if exist('Nuc0_mat','var') && isempty(Nuc0_mat)
+                    Nuc0_mat = nan(15,size(Nuc0_mat,2));
+                end
+                
+                if exist('Cyto0_mat','var') && isempty(Cyto0_mat)
+                    Cyto0_mat = nan(15,size(Cyto0_mat,2));
+                end
+                
                 % Measure cells
-                cellDataMeasure00.([channel '_mode'])(:,1) = images.([channel '_mode'])(f,p);
+                cellDataMeasure00.([channel '_mode'])(:,1) = double(images.([channel '_mode'])(f,p));
                 cellDataMeasure00.([channel '_BG'])(:,1) = BG;
                 cellDataMeasure00.([channel '_confluency'])(:,1) = confluency;
                 cellDataMeasure00.([channel '_cell_mean'])(:,1) = nanmean(Cell0_mat);
@@ -176,10 +191,13 @@ for p = 1:np
             end
             cellDataMeasure{idx} = cellDataMeasure00;
             idx = idx + 1;
-        catch
-            disp(['No cells in frame ' num2str(f) ' position ' num2str(p)])
-        end
+            
+%         catch
+%             disp(['No cells in frame ' num2str(f) ' position ' num2str(p)])
+%         end
     end
 end
 cellDataMeasure = vertcat(cellDataMeasure{:});
 
+t_measure = toc;
+disp(['time to measure = ' num2str(t_measure)])
