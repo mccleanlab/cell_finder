@@ -1,7 +1,8 @@
-function cellDataTrackOut = trackCells(data, trackVar,maxLinkDist,maxGapClose)
+function cellDataTrackOut = trackCells(data,trackVar,maxLinkDist,maxGapClose)
 
 nf = max(data.Frame(:));
 np =  max(data.Position(:));
+
 for p = 1:np
     cellData = data(data.Position==p,:);
     
@@ -19,8 +20,12 @@ for p = 1:np
         points = points';
     end
     
+    disp('formatted data')
+    
     % Track data with simpletracker
     [tracks] = simpletracker(points,'MaxLinkingDistance', maxLinkDist,'MaxGapClosing', maxGapClose);
+    
+    disp('ran through simpletracker')
     
     % Format output data
     nTracks = numel(tracks);

@@ -1,6 +1,7 @@
 function exportCellDisplay(cellData,images,channel1,channel2,params)
 tic
 
+plotincolor = 'no';
 disp('Exporting movie of tracked cells tracks')
 
 h = size(images.(channel1),1);
@@ -43,31 +44,44 @@ for p = 1:np
         % Image contrast adjustment
         im20 = imadjust(im20, stretchlim(im20),[]);
         im10 = imadjust(im10, stretchlim(im10),[]);
-        
+                
+
+%             n = 16;
+%             sigma = 0.05;
+%             filt = fspecial('log',n,sigma);
+%             im10 = imfilter(im10,filt,'replicate');
+%             im10 = imgaussfilt(im10,2);
+%             im10 = imerode(im10,strel('disk',1));
+%             im10 = imdilate(im10,strel('disk',1));
+            
         % Create images with cell overlays
         fig = figure;
         set(gcf,'visible','off')
-        if isequal(channel1,'DIC') || isequal(channel2,'DIC')
-            im20 = cat(3,im20,im20,im20);
-            im10 =cat(3,im10,zeros(h,w),zeros(h,w));
-            imshowpair(im20,im10,'blend');
+        if plotincolor=='no'
+            imshow(imadjust(im10),'InitialMagnification',100);
         else
-            imshowpair(im20,im10,'ColorChannels','red-cyan','Scaling','joint');
-            set(gca,'position',[0 0 1 1],'units','normalized')
+            if isequal(channel1,'DIC') || isequal(channel2,'DIC')
+                im20 = cat(3,im20,im20,im20);
+                im10 =cat(3,im10,zeros(h,w),zeros(h,w));
+                imshowpair(im20,im10,'blend');
+            else
+                imshowpair(im20,im10,'ColorChannels','red-cyan','Scaling','joint');
+                set(gca,'position',[0 0 1 1],'units','normalized')
+            end
         end
+        
         if ismember('rNuc', cellData.Properties.VariableNames)
             viscircles([cellDataDisplay.cNucX, cellDataDisplay.cNucY], cellDataDisplay.rNuc,'EdgeColor','r','LineWidth',0.25);
         end
-        
         viscircles([cellDataDisplay.cCellX, cellDataDisplay.cCellY], cellDataDisplay.rCell,'EdgeColor','y','LineWidth',0.25);
         
         % Label identified cells
         if params.displayCellNumber==1 && ismember('TrackID', cellDataDisplay.Properties.VariableNames)
             for i = 1:length(cellDataDisplay.TrackID)
-                txt = text(cellDataDisplay.cCellX(i) + 0, cellDataDisplay.cCellY(i) + 0, sprintf('%d', cellDataDisplay.TrackID(i)));
+%                 txt = text(cellDataDisplay.cCellX(i) + 0, cellDataDisplay.cCellY(i) + 0, sprintf('%d', cellDataDisplay.TrackID(i)));
                 txt.HorizontalAlignment='center';
                 txt.VerticalAlignment='middle';
-                txt.Color = 'y';               
+                txt.Color = 'y';
             end
         elseif params.displayCellNumber==1 && ~ismember('TrackID', cellDataDisplay.Properties.VariableNames)
             for i = 1:length(cellDataDisplay.ID)
@@ -89,10 +103,11 @@ for p = 1:np
                     txt.VerticalAlignment='middle';
                     txt.Color = 'g';
                 end
-            end            
+            end
         end
         
         % Export images
+        truesize(fig)
         fig = getframe(fig);
         im = fig.cdata;
         if np ==1

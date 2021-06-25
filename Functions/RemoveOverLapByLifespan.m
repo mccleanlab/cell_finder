@@ -1,4 +1,4 @@
-function [centersNew,radiiNew]=removeOverByLapLifespan(centers,radii,lifespan,tol)
+function [centersNew,radiiNew]=RemoveOverByLapLifespan(centers,radii,lifespan,tol)
 % Modified from the function RemoveOverlap() by Elad
 % mathworks.com/matlabcentral/fileexchange/42370-circles-overlap-remover
 

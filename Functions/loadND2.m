@@ -1,10 +1,12 @@
-function [images, params, im] = loadND(imagelist,imidx,channellist,numFrames,numPositions,params)
+function [images, params, im] = loadND2(imagelist,imidx,channellist,numFrames,numPositions,params)
 % numFrames = [];
-% numPositions = 5;
+% numPositions = 8;
 % imidx = 1;
+% imagelist = selectImages();
 
 imfile = imagelist{imidx};
 [~, filename, ext] = fileparts(imfile);
+disp(['Loading ' filename]);
 im = bfopen(imfile);
 nseries = size(im,1);
 
@@ -63,20 +65,14 @@ for series = 1:nseries
     end    
 end
 
-images.h = size(images.(channellist{1}),1);
-images.w = size(images.(channellist{1}),2);
-images.nf = size(images.(channellist{1}),3);
-images.np = size(images.(channellist{1}),4);
+images.iminfo.h = size(images.(channellist{1}),1);
+images.iminfo.w = size(images.(channellist{1}),2);
+images.iminfo.nf = size(images.(channellist{1}),3);
+images.iminfo.np = size(images.(channellist{1}),4);
 
 [folder, filename, ext] = fileparts(imfile);
 match = [ext, channellist];
 params.sourceFile = filename;
 params.outputFilenameBase = erase(filename, match);
 params.outputFolder = [folder '\output\'];
-
-% 
-% %% Create output folder
-% if ~exist(params.outputFolder)
-%     mkdir(params.outputFolder)
-% end
 

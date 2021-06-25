@@ -8,7 +8,14 @@ if ~exist(params.outputFolder)
 end
 
 % Set data path for output
-outputDataPath = [params.outputFolder '\' params.outputFilenameBase '_cellMeasurements' '.xls'];
+if isempty(params.tabletype)
+    ext = '.xlsx';
+else
+    ext = params.tabletype;
+end
+
+outputDataPath = [params.outputFolder '\' params.outputFilenameBase '_cellMeasurements' ext];
+% outputDataPath = fullfile('E:\microscopy\20210207_2\output\',strcat(params.outputFilenameBase,'_cellMeasurements',ext));
 
 % Delete previously exported data (otherwise appends)
 if exist(outputDataPath)~=0
@@ -17,5 +24,9 @@ end
 
 % Write data into .xls file
 cellMeasurements.sourceFile = repmat(params.sourceFile,height(cellMeasurements),1);
-writetable(cellMeasurements, outputDataPath);
+if strcmp(ext,'.mat')
+    save(outputDataPath,'cellMeasurements');
+else
+    writetable(cellMeasurements, outputDataPath);
+end
 toc;
