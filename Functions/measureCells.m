@@ -1,11 +1,11 @@
-function cellDataMeasure = measureCells(images,channellist,cellData,params)
+function cellDataMeasure = measureCells(images,channel_list,cellData,params)
 
 % clearvars -except params images channel cellData
 % imMeasure = images.mCherry;
 % channellist = {'mCherry','DIC'};
 
 disp('Measuring cells:')
-[h, w, nf, np] = size(images.(channellist{1}));
+[h, w, nf, np] = size(images.(channel_list{1}));
 % nf = images.iminfo.nf;
 % np = images.iminfo.np;
 % w = images.iminfo.w;
@@ -66,16 +66,16 @@ for p = 1:np
             assignin('base','mask',mask);
             
             % Calculate confluency based on cell ROIs
-            confluency = mask;
-            confluency = imdilate(confluency,strel('disk',3));
-            confluency = bwmorph(confluency,'bridge');
-            confluency = imfill(confluency,8,'holes');
-            confluency = sum(confluency,'all')/(h*w);
+%             confluency = mask;
+%             confluency = imdilate(confluency,strel('disk',3));
+%             confluency = bwmorph(confluency,'bridge');
+%             confluency = imfill(confluency,8,'holes');
+%             confluency = sum(confluency,'all')/(h*w);
             
-            for i = 1:numel(channellist)
+            for i = 1:numel(channel_list)
                 
                 % Set image to measure and replace zeros with nan
-                channel = channellist{i};
+                channel = channel_list{i};
                 imMeasure0 = images.(channel)(:,:,f,p);
                 imMeasure0 = double(imMeasure0);
                 imMeasure0(imMeasure0==0)=nan;
@@ -147,7 +147,7 @@ for p = 1:np
                 % Measure cells
                 cellDataMeasure00.([channel '_mode'])(:,1) = double(images.([channel '_mode'])(f,p));
                 cellDataMeasure00.([channel '_BG'])(:,1) = BG;
-                cellDataMeasure00.([channel '_confluency'])(:,1) = confluency;
+%                 cellDataMeasure00.([channel '_confluency'])(:,1) = confluency;
                 cellDataMeasure00.([channel '_cell_mean'])(:,1) = nanmean(Cell0_mat);
                 cellDataMeasure00.([channel '_cell_median'])(:,1) = nanmedian(Cell0_mat);
                 cellDataMeasure00.([channel '_cell_mode'])(:,1) = mode(Cell0_mat);
