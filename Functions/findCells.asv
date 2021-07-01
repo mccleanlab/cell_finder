@@ -169,7 +169,7 @@ for p = 1:number_positions
                 max_number_columns = max(sum(potential_pairs,2));
                 mNuc_2D = repmat(mNuc,[number_cells,max_number_columns]);
                 
-                % Get indices of potential pairs of cells
+                % Get indices of potenti
                 idx_potential_pairs = zeros(number_cells,max_number_columns);                
                 for c = 1:number_cells
                     [~, idx_potential_pairs_temp] = find(potential_pairs(c,:));
