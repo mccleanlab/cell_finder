@@ -1,4 +1,4 @@
-function cell_measurements = measureCells(images,channel_list,cell_ROIs,params)
+function cell_measurements = measure_cells(images,channel_list,cell_ROIs,params)
 
 [h, w, number_frames, number_positions] = size(images.(channel_list{1}));
 theta = 0:0.1:2*pi;
@@ -16,7 +16,7 @@ for p = 1:number_positions
             disp(['Measuring cells: frame ' num2str(f) ' position ' num2str(p)])
             
             % Create table for cells at current frame and position
-            cell_meausurements_temp = cell_ROIs(cell_ROIs.Frame==f & cell_ROIs.Position==p,:);
+            cell_meausurements_temp = cell_ROIs(cell_ROIs.frame==f & cell_ROIs.position==p,:);
             number_cells_temp = size(cell_meausurements_temp,1);
             
             % If no nuclear ROIs, get pixel indices for each cell

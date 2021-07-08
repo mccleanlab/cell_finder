@@ -1,10 +1,4 @@
-function cell_ROIs = findCells(images,channel_nuc,channel_cell,params,preprocess_imNuc,preprocess_imCell)
-
-
-% clearvars -except params images channel
-% channelNuc = 'mCherry';
-% channelCell = 'GFP';
-
+function cell_ROIs = find_cells(images,channel_nuc,channel_cell,params,preprocess_imNuc,preprocess_imCell)
 
 % If nuclear image, get image parameters (mode, # frames, # positions)
 if ~isempty(channel_nuc)
@@ -37,7 +31,7 @@ for p = 1:number_positions
         cell_ROIs_temp = table();
         display_ROI = true;
         
-        disp(['     Frame ' num2str(f) ' position ' num2str(p)])
+        disp(['     frame ' num2str(f) ' position ' num2str(p)])
         
         % Preprocess nuclear images
         if ~isempty(im_nuc)
@@ -114,8 +108,8 @@ for p = 1:number_positions
                 
                 % Save cell ROIs
                 number_cells = numel(rCell);
-                cell_ROIs_temp.Frame(1:number_cells,1) = f;
-                cell_ROIs_temp.Position(1:number_cells,1) = p;
+                cell_ROIs_temp.frame(1:number_cells,1) = f;
+                cell_ROIs_temp.position(1:number_cells,1) = p;
                 cell_ROIs_temp.ID(1:number_cells,1) = randi(1E9);
                 cell_ROIs_temp.cCellX(1:number_cells,1) = cCell(:,1);
                 cell_ROIs_temp.cCellY(1:number_cells,1) = cCell(:,2);
@@ -127,8 +121,8 @@ for p = 1:number_positions
                 
                 % Save cell ROIs
                 number_cells = numel(rCell);
-                cell_ROIs_temp.Frame(1:number_cells,1) = f;
-                cell_ROIs_temp.Position(1:number_cells,1) = p;
+                cell_ROIs_temp.frame(1:number_cells,1) = f;
+                cell_ROIs_temp.position(1:number_cells,1) = p;
                 cell_ROIs_temp.cCellX(1:number_cells,1) = cCell(:,1);
                 cell_ROIs_temp.cCellY(1:number_cells,1) = cCell(:,2);
                 cell_ROIs_temp.rCell(1:number_cells,1) = rCell;
@@ -169,7 +163,7 @@ for p = 1:number_positions
                 max_number_columns = max(sum(potential_pairs,2));
                 mNuc_2D = repmat(mNuc,[number_cells,max_number_columns]);
                 
-                % Get indices of potenti
+                % Get indices of potential pairs of cells
                 idx_potential_pairs = zeros(number_cells,max_number_columns);                
                 for c = 1:number_cells
                     [~, idx_potential_pairs_temp] = find(potential_pairs(c,:));
@@ -197,8 +191,8 @@ for p = 1:number_positions
                 number_cells = numel(idx_nuc);
                 
                 % Save cell ROIs
-                cell_ROIs_temp.Frame(1:number_cells,1) = f;
-                cell_ROIs_temp.Position(1:number_cells,1) = p;
+                cell_ROIs_temp.frame(1:number_cells,1) = f;
+                cell_ROIs_temp.position(1:number_cells,1) = p;
                 %             cellData0.ID(1:nCell,1) = randi([0 1E9],nCell,1);
                 cell_ROIs_temp.cCellX(1:number_cells,1) = cCell(idx_cell,1);
                 cell_ROIs_temp.cCellY(1:number_cells,1) = cCell(idx_cell,2);
@@ -236,24 +230,20 @@ for p = 1:number_positions
                 figure;
                 
                 if params.displayCells==1 && display_ROI==true % Show matched nucleus/cell pairs
-                    imshow(im_cell_current,[])
-
+%                     imshow(im_cell_current,[])
+                    imshow(im_nuc_current,[])
                     viscircles([cell_ROIs_display.cNucX, cell_ROIs_display.cNucY] , cell_ROIs_display.rNuc,'EdgeColor','r','LineWidth',0.1);
                     viscircles([cell_ROIs_display.cCellX, cell_ROIs_display.cCellY] , cell_ROIs_display.rCell,'EdgeColor','y','LineWidth',0.1);
                 elseif params.displayCells==2 % Show all potential cells/nuclei
-                    %                                         imCell0 = imCell(:,:,f,p);
-                    %                     imCell0 = imadjust(imCell0,stretchlim(imCell0),[],params.cellGamma);
-                    %                     imshow(imCell0,[])
+%                     imshow(imadjust(im_cell_current),[])
                     imshow(imadjust(im_nuc_current),[])
                     viscircles(cNuc, rNuc,'EdgeColor','r','LineWidth',0.1);
                     viscircles(cCell, rCell,'EdgeColor','y','LineWidth',0.1);
                 elseif params.displayCells==3 % Show potential nuclei
-                    %                     imshow(imadjust(imNuc0),[])
                     imshow(imadjust(im_nuc(:,:,f,p)),[])
                     viscircles(cNuc, rNuc,'EdgeColor','r','LineWidth',0.1);
                 elseif params.displayCells==4 % Show potential cells
                     imshow(im_cell_current,[])
-                    %                     imshow(imadjust(imCell(:,:,f,p)),[])
                     viscircles(cCell, rCell,'EdgeColor','y','LineWidth',0.1);
                 elseif params.displayCells==5 % Show filtered cells
                     imshow(im_cell_current,[])
@@ -275,4 +265,3 @@ for p = 1:number_positions
 end
 cell_ROIs = vertcat(cell_ROIs{:});
 cell_ROIs.ID(:,1) = randperm(size(cell_ROIs,1));
-toc

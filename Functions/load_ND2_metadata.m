@@ -1,4 +1,4 @@
-function [images, params] = loadND2(image_list,im_idx,channel_list,n_frames,n_positions,params)
+function [images, params] = load_ND2_metadata(image_list,im_idx,channel_list,number_positions,params)
 % image_list = selectImages();
 % n_frames = [];
 % n_positions = 4;
@@ -7,26 +7,24 @@ function [images, params] = loadND2(image_list,im_idx,channel_list,n_frames,n_po
 
 % Select image from list
 im_file = image_list{im_idx};
-[~, filename, ext] = fileparts(im_file);
+[folder, filename, ext] = fileparts(im_file);
 
 disp(['Loading ' filename]);
 
 % Load selected image
 im = bfopen(im_file);
-n_series = size(im,1);
+number_series = size(im,1);
 
 % Set number of positions to one if needed
-if isempty(n_positions)
-    n_positions =1;
+if isempty(number_positions)
+    number_positions =1;
 end
 
-% assignin('base','im',im)
-%%
-metadata = {};
+im_metadata = cell(number_series,1);
 
 % Loop through series/planes and extract images.
-for series = 1:n_series
-    n_planes = size(im{series,1},1);
+for series = 1:number_series
+    number_planes = size(im{series,1},1);
     
     metadata_raw = string(im{series,2});
     timestamps = regexp(metadata_raw,'((?<=timestamp #).*?(?=\,))','match');
@@ -34,10 +32,11 @@ for series = 1:n_series
     time_list = double(string(regexp(time_list,'\d*\.\d*','match')));
     time_list = flip(time_list)';
     
-    for plane = 1:n_planes
+    for plane = 1:number_planes
+        
         % Reset variables
-        im_data = [];
-        plane_label = [];
+%         im_data = [];
+%         plane_label = [];
         
         % Get image data and plane label
         im_data = im{series,1}{plane,1};
@@ -64,7 +63,7 @@ for series = 1:n_series
         end
         
         % Set number of positions
-        if n_positions~=1
+        if number_positions~=1
             position = series;
         elseif any(ismember(fieldnames(params),'frame_position_switch')) && params.frame_position_switch==true % Flip position/frame if needed (sometimes .ND2 files organized incorrectly)
             position = frame;
@@ -109,17 +108,17 @@ for series = 1:n_series
         
         metadata_temp = table('Size',[frame, 4],'VariableTypes',{'string','int32','int32','double'},'VariableNames',{'sourceFile','Frame','Position','Time'});
         metadata_temp.sourceFile(:,1) = string(filename);
-        metadata_temp.Frame(:,1) = (1:frame)';
-        metadata_temp.Position(:,1) = position;
-        metadata_temp.Time(:,1) = time;
+        metadata_temp.frame(:,1) = (1:frame)';
+        metadata_temp.position(:,1) = position;
+        metadata_temp.time(:,1) = time;
     end
     
     % Collect metadata
-    metadata{series,1} = metadata_temp;
+    im_metadata{series,1} = metadata_temp;
 end
 
-metadata = vertcat(metadata{:});
-images.metadata = metadata;
+im_metadata = vertcat(im_metadata{:});
+images.metadata = im_metadata;
 
 % Get and save image info
 images.iminfo.h = size(images.(channel_list{1}),1);
@@ -128,9 +127,6 @@ images.iminfo.nf = size(images.(channel_list{1}),3);
 images.iminfo.np = size(images.(channel_list{1}),4);
 
 % Get and save image info
-% [folder, filename, ext] = fileparts(im_file);
-match = [ext, channel_list];
 params.sourceFile = filename;
-params.outputFilenameBase = erase(filename, match);
-params.outputFolder = fullfile(pwd, '\output');
+params.outputFolder = fullfile(folder, 'output');
 
