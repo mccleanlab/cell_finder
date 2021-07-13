@@ -45,7 +45,6 @@ for p = 1:number_positions
         if ~isempty(im_cell)
             im_cell_current = im_cell(:,:,f,p);
             im_cell_current(im_cell_current==0)=mode(im_cell_current(im_cell_current~=0),'all');
-            params.p_current = p;
             [im_cell_current, params] = preprocess_imCell(im_cell_current,params);
             %                         cellEdgeThresh = params.cellEdgeThresh*graythresh(imCell0);
             cell_edgethresh = params.cellEdgeThresh;
@@ -58,7 +57,7 @@ for p = 1:number_positions
             
             % Find center, radius, and metric of nuclear ROIs
             [cNuc, rNuc, mNuc] = imfindcircles(im_nuc_current,params.sizeNuc,'ObjectPolarity',params.nucPolarity,'Sensitivity',params.nucSensitivity,'Method','PhaseCode','EdgeThreshold',nuc_edgethresh);
-
+            
             % Remove nuclei that are too close together
             if ~isempty(params.nucOverlapThresh) && size(cNuc,1)>1
                 [cNuc, rNuc, mNuc] = remove_overlap_by_metric(cNuc,rNuc,params.nucOverlapThresh.*params.sizeCell(1),4,mNuc);
@@ -73,15 +72,17 @@ for p = 1:number_positions
         
         % If cell image, use to find potential cell ROIs
         if ~isempty(im_cell)
-            
+            assignin('base','im_cell_current',im_cell_current)
             % Find cell ROIs from image
             [cCell, rCell, mCell] = imfindcircles(im_cell_current,params.sizeCell,'ObjectPolarity',params.cellPolarity,'Sensitivity',params.cellSensitivity,'Method','TwoStage','EdgeThreshold',cell_edgethresh);
-      
-        % If no cell image, dilate nuclear ROIs to approximate cell location
-        else            
+%             length(rCell)
+            [cCell, rCell, mCell] = imfindcircles(im_cell_current,params.sizeCell,'ObjectPolarity',params.cellPolarity,'Sensitivity',params.cellSensitivity,'Method','TwoStage','EdgeThreshold',params.cellEdgeThresh);
+
+            % If no cell image, dilate nuclear ROIs to approximate cell location
+        else
             cCell = cNuc;
             rCell = rNuc*params.nucToCellScale;
-            mCell = mNuc;            
+            mCell = mNuc;
         end
         
         % If cells found, process
@@ -105,7 +106,7 @@ for p = 1:number_positions
             
             % If no nuclear image, save only cell ROIs
             if isempty(im_nuc)
-                
+
                 % Save cell ROIs
                 number_cells = numel(rCell);
                 cell_ROIs_temp.frame(1:number_cells,1) = f;
@@ -115,8 +116,8 @@ for p = 1:number_positions
                 cell_ROIs_temp.cCellY(1:number_cells,1) = cCell(:,2);
                 cell_ROIs_temp.rCell(1:number_cells,1) = rCell(:);
                 cell_ROIs_temp.mCell(1:number_cells,1) = mCell(:);
-             
-            % If no cell image and nuclei found
+                
+                % If no cell image and nuclei found
             elseif isempty(im_cell) && ~isempty(rNuc)
                 
                 % Save cell ROIs
@@ -132,8 +133,8 @@ for p = 1:number_positions
                 % generated cell ROIs by scaling up nuclei then removed
                 % overlapping cells without removing the corresponding
                 % nuclei. To compensate we just rescale to cells to get
-                % back our nuclei                
-                rNuc = rCell/params.nucToCellScale;                
+                % back our nuclei
+                rNuc = rCell/params.nucToCellScale;
                 
                 % Save nuclei ROIs
                 cell_ROIs_temp.cNucX(1:number_cells,1) = cCell(:,1);
@@ -142,21 +143,21 @@ for p = 1:number_positions
                 cell_ROIs_temp.mNuc(1:number_cells,1) = mCell;
                 cell_ROIs_temp.mNuc(1:number_cells,1) = mCell;
                 
-            % If nuclear and cell images and nuclei found, pair up cells/nuclei
+                % If nuclear and cell images and nuclei found, pair up cells/nuclei
             elseif ~isempty(im_nuc) && ~isempty(im_cell) && ~isempty(rNuc)
                 
                 % Combine coordinates of cells and nuclei
                 cell_nuc_positions = [cCell; cNuc];
-                cell_nuc_radii = [rCell; rNuc];               
+                cell_nuc_radii = [rCell; rNuc];
                 
                 % Find potential pairs of cells
                 radii_sum = cell_nuc_radii(:) + cell_nuc_radii(:)';
                 cell_nuc_distance = sqrt((cell_nuc_positions(:,1) - cell_nuc_positions(:,1)').^2 + (cell_nuc_positions(:,2) - cell_nuc_positions(:,2)').^2 );
-%                 idx_potential_pairs = cell_nuc_distance <= params.nucCellOverlapThresh*radii_sum;
-%                 idx_potential_pairs(1:size(cell_nuc_positions,1)+1:end) = false;
+                %                 idx_potential_pairs = cell_nuc_distance <= params.nucCellOverlapThresh*radii_sum;
+                %                 idx_potential_pairs(1:size(cell_nuc_positions,1)+1:end) = false;
                 potential_pairs = cell_nuc_distance <= params.nucCellOverlapThresh*radii_sum;
                 potential_pairs(1:size(cell_nuc_positions,1)+1:end) = false;
-                               
+                
                 % Simplify and reorder indices of potential pairs
                 number_cells = length(rCell);
                 potential_pairs = potential_pairs(1:number_cells,(number_cells+1):end);
@@ -164,7 +165,7 @@ for p = 1:number_positions
                 mNuc_2D = repmat(mNuc,[number_cells,max_number_columns]);
                 
                 % Get indices of potential pairs of cells
-                idx_potential_pairs = zeros(number_cells,max_number_columns);                
+                idx_potential_pairs = zeros(number_cells,max_number_columns);
                 for c = 1:number_cells
                     [~, idx_potential_pairs_temp] = find(potential_pairs(c,:));
                     idx_potential_pairs(c,1:numel(idx_potential_pairs_temp)) = idx_potential_pairs_temp;
@@ -206,7 +207,7 @@ for p = 1:number_positions
                 cell_ROIs_temp.mNuc(1:number_cells,1) = mNuc(idx_nuc);
                 cell_ROIs_temp.mNuc(1:number_cells,1) = mNuc(idx_nuc);
                 
-            % If nuclear image provided but no nuclei found, set to nan
+                % If nuclear image provided but no nuclei found, set to nan
             elseif ~isempty(im_nuc) && isempty(rNuc)
                 disp(['No nuclei found in frame ' num2str(f) ' position ' num2str(p)])
                 rNuc = nan;
@@ -222,7 +223,7 @@ for p = 1:number_positions
                 % If needed, convert ROIs to table
                 if isa(cell_ROIs_display,'struct')
                     cell_ROIs_display = struct2table(cell_ROIs_display);
-                end                
+                end
                 
                 % Remove missing rows from ROI table
                 cell_ROIs_display = rmmissing(cell_ROIs_display);
@@ -230,12 +231,12 @@ for p = 1:number_positions
                 figure;
                 
                 if params.displayCells==1 && display_ROI==true % Show matched nucleus/cell pairs
-%                     imshow(im_cell_current,[])
+                    %                     imshow(im_cell_current,[])
                     imshow(im_nuc_current,[])
                     viscircles([cell_ROIs_display.cNucX, cell_ROIs_display.cNucY] , cell_ROIs_display.rNuc,'EdgeColor','r','LineWidth',0.1);
                     viscircles([cell_ROIs_display.cCellX, cell_ROIs_display.cCellY] , cell_ROIs_display.rCell,'EdgeColor','y','LineWidth',0.1);
                 elseif params.displayCells==2 % Show all potential cells/nuclei
-%                     imshow(imadjust(im_cell_current),[])
+                    %                     imshow(imadjust(im_cell_current),[])
                     imshow(imadjust(im_nuc_current),[])
                     viscircles(cNuc, rNuc,'EdgeColor','r','LineWidth',0.1);
                     viscircles(cCell, rCell,'EdgeColor','y','LineWidth',0.1);
