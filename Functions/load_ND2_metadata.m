@@ -88,11 +88,11 @@ for series = 1:number_series
         images.([channel_name '_mode'])(frame,position) = im_mode;
         
         if params.frame_position_switch==true
-            metadata_temp = table('Size',[1, 4],'VariableTypes',{'string','int32','int32','double'},'VariableNames',{'sourceFile','Frame','Position','Time'});
+            metadata_temp = table('Size',[1, 4],'VariableTypes',{'string','int32','int32','double'},'VariableNames',{'sourceFile','frame','position','time'});
             metadata_temp.sourceFile(:,1) = string(filename);
-            metadata_temp.Frame(:,1) = frame;
-            metadata_temp.Position(:,1) = position;
-            metadata_temp.Time(:,1) = time_list(frame);
+            metadata_temp.frame(:,1) = frame;
+            metadata_temp.position(:,1) = position;
+            metadata_temp.time(:,1) = time_list(frame);
         end
         
     end
@@ -106,7 +106,7 @@ for series = 1:number_series
         time = double(string(regexp(time,'\d*\.\d*','match')));
         time = flip(time)';
         
-        metadata_temp = table('Size',[frame, 4],'VariableTypes',{'string','int32','int32','double'},'VariableNames',{'sourceFile','Frame','Position','Time'});
+        metadata_temp = table('Size',[frame, 4],'VariableTypes',{'string','int32','int32','double'},'VariableNames',{'sourceFile','frame','position','time'});
         metadata_temp.sourceFile(:,1) = string(filename);
         metadata_temp.frame(:,1) = (1:frame)';
         metadata_temp.position(:,1) = position;

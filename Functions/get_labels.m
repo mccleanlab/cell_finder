@@ -13,14 +13,14 @@ if exist('label_file','var')~=1
     end
     plate_map_raw = readtable([folder file], opts);
 else
-    opts = detectImportOptions(label_file);
-    opts = setvartype(opts, 'char');
-    opts.DataRange = 'A1';
     if exist('sheet','var')==1
-        opts.Sheet = sheet;
+        opts = detectImportOptions(label_file,'Sheet',sheet);
     else
+        opts = detectImportOptions(label_file);
         opts.Sheet = 'plate_map';
     end
+    opts = setvartype(opts, 'char');
+    opts.DataRange = 'A1';
     plate_map_raw = readtable(label_file, opts);
 end
 
@@ -79,10 +79,10 @@ if strcmp(opts.Sheet,'optoplate_config')
     for i = 2:numel(variable_list)
         labels_out.(variable_list{i}) = str2double(labels_out.(variable_list{i}));
     end
-% else
-%     stringvar_idx = ismember(varfun(@class,labels_out,'OutputFormat','cell'),'string');
-%     stringvar_names = labels_out.Properties.VariableNames(stringvar_idx);
-%     labels_out = convertvars(labels_out,stringvar_names,'categorical');
+    % else
+    %     stringvar_idx = ismember(varfun(@class,labels_out,'OutputFormat','cell'),'string');
+    %     stringvar_names = labels_out.Properties.VariableNames(stringvar_idx);
+    %     labels_out = convertvars(labels_out,stringvar_names,'categorical');
 end
 
 

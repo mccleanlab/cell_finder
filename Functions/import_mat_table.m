@@ -1,4 +1,4 @@
-function data_out = import_mat_table(folder,variable_names,condition_variable,condition_entry,condition_type)
+function data_out = import_mat_table(folder,variable_names,condition_variable,condition_value,condition_type)
 data_out = {};
 
 % Define datastore
@@ -17,11 +17,11 @@ while hasdata(data_store)
         data_temp = data_temp(:,variable_names);
     end
     
-    if exist('condition_variable','var') && exist('condition_entry','var') && exist('condition_type','var')
+    if exist('condition_variable','var') && exist('condition_value','var') && exist('condition_type','var')
         if strcmp(condition_type,'exclude')
-            data_temp(ismember(data_temp.(condition_variable),condition_entry),:) = [];
+            data_temp(ismember(data_temp.(condition_variable),condition_value),:) = [];
         elseif strcmp(condition_type,'keep')
-            data_temp(~ismember(data_temp.(condition_variable),condition_entry),:) = [];
+            data_temp(~ismember(data_temp.(condition_variable),condition_value),:) = [];
         end
     end
     
