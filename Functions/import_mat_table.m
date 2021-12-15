@@ -1,9 +1,9 @@
 function data_out = import_mat_table(folder,variable_names,condition_variable,condition_value,condition_type)
-data_out = {};
+% data_out = {};
 
 % Define datastore
 data_store = fileDatastore(fullfile(folder,'*.mat'),'ReadFcn',@load);
-
+data_out = cell(size(data_store.Files,1),1);
 idx = 1;
 
 % Loop through files in datastore and load
