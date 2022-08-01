@@ -1,2 +1,7 @@
-
+Functions/3rd_party
+Functions/unused
 Functions/load_ND2_metadata_obselete.m
+analyze_measurements.m
+list_commonly_used_functions.m
+multi_cell_finderTest.m
+run_cell_finder.m
